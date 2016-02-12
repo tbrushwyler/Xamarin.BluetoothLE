@@ -91,6 +91,15 @@
   </ItemGroup>
   <ItemGroup>
     <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\Contents.json" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-29.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-29%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-29%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-40%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-40%403x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-57%401x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-57%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-60%402x.png" />
+    <ImageAsset Include="Resources\Images.xcassets\AppIcons.appiconset\icon-60%403x.png" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Resources\LaunchScreen.xib" />
@@ -110,6 +119,14 @@
     <ProjectReference Include="..\BluetoothLE.Example\BluetoothLE.Example.csproj">
       <Project>{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}</Project>
       <Name>BluetoothLE.Example</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BluetoothLE.iOS\BluetoothLE.iOS.csproj">
+      <Project>{8B611332-9D09-4D47-AB7F-DA1A4E2CDF24}</Project>
+      <Name>BluetoothLE.iOS</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BluetoothLE.Core\BluetoothLE.Core.csproj">
+      <Project>{EBD23762-16B0-4C51-9ACC-1917C2E2DD64}</Project>
+      <Name>BluetoothLE.Core</Name>
     </ProjectReference>
   </ItemGroup>
 </Project>

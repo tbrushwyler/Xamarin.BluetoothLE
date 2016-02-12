@@ -86,5 +86,13 @@
       <Project>{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}</Project>
       <Name>BluetoothLE.Example</Name>
     </ProjectReference>
+    <ProjectReference Include="..\BluetoothLE.Core\BluetoothLE.Core.csproj">
+      <Project>{EBD23762-16B0-4C51-9ACC-1917C2E2DD64}</Project>
+      <Name>BluetoothLE.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BluetoothLE.Droid\BluetoothLE.Droid.csproj">
+      <Project>{BEDC9B01-4519-4607-BCAB-3700ACDF405E}</Project>
+      <Name>BluetoothLE.Droid</Name>
+    </ProjectReference>
   </ItemGroup>
 </Project>

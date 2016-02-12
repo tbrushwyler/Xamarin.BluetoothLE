@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+			 x:Class="BluetoothLE.Example.Pages.DevicePage"
+			 Title="{Binding Name}">
+	<ContentPage.Content>
+		<StackLayout>
+			<StackLayout Padding="20">
+				<Label Text="{Binding Name}" />
+				<Label Text="{Binding Id, StringFormat = 'Id: {0}'}" />
+			</StackLayout>
+			<ListView x:Name="serviceListView"
+					  IsGroupingEnabled="true"
+					  GroupDisplayBinding="{Binding Key.Uuid}">
+				<ListView.ItemTemplate>
+					<DataTemplate>
+						<TextCell Text="{Binding Uuid}" Detail="{Binding Properties}" />
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</StackLayout>
+	</ContentPage.Content>
+</ContentPage>

@@ -73,6 +73,12 @@ namespace BluetoothLE.Droid
 		public Guid Id { get { return _id; } }
 
 		/// <summary>
+		/// Gets the UUID.
+		/// </summary>
+		/// <value>The UUID.</value>
+		public string Uuid { get { return _nativeService.Uuid.ToString(); }}
+
+		/// <summary>
 		/// Gets a value indicating whether this instance is primary.
 		/// </summary>
 		/// <value>true</value>

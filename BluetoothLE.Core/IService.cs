@@ -21,6 +21,12 @@ namespace BluetoothLE.Core
 		Guid Id { get; }
 
 		/// <summary>
+		/// Gets the UUID.
+		/// </summary>
+		/// <value>The UUID.</value>
+		string Uuid { get; }
+
+		/// <summary>
 		/// Gets a value indicating whether this instance is primary.
 		/// </summary>
 		/// <value><c>true</c> if this instance is primary; otherwise, <c>false</c>.</value>

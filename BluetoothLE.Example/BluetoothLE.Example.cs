@@ -1,24 +1,29 @@
 ﻿using System;
 
 using Xamarin.Forms;
+using BluetoothLE.Example.Pages;
+using BluetoothLE.Core;
 
 namespace BluetoothLE.Example
 {
 	public class App : Application
 	{
+		private static readonly IAdapter _bluetoothAdapter;
+		public static IAdapter BluetoothAdapter { get { return _bluetoothAdapter; } }
+
+		static App() {
+			_bluetoothAdapter = DependencyService.Get<IAdapter>();
+
+			_bluetoothAdapter.ScanTimeout = TimeSpan.FromSeconds(10);
+			_bluetoothAdapter.ConnectionTimeout = TimeSpan.FromSeconds(10);
+		}
+
 		public App()
 		{
 			// The root page of your application
-			MainPage = new ContentPage {
-				Content = new StackLayout {
-					VerticalOptions = LayoutOptions.Center,
-					Children = {
-						new Label {
-							XAlign = TextAlignment.Center,
-							Text = "Welcome to Xamarin Forms!"
-						}
-					}
-				}
+			MainPage = new NavigationPage(new DeviceListPage())
+			{
+				Title = "Bluetooth LE Explorer"
 			};
 		}
 

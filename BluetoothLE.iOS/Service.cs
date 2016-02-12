@@ -55,6 +55,12 @@ namespace BluetoothLE.iOS
 		public Guid Id { get { return _id; } }
 
 		/// <summary>
+		/// Gets the UUID.
+		/// </summary>
+		/// <value>The UUID.</value>
+		public string Uuid { get { return _nativeService.UUID.ToString(); }}
+
+		/// <summary>
 		/// Gets a value indicating whether this instance is primary.
 		/// </summary>
 		/// <value>true</value>
@@ -73,6 +79,9 @@ namespace BluetoothLE.iOS
 
 		private void DiscoveredCharacteristic(object sender, CBServiceEventArgs args)
 		{
+			if (args.Service.UUID != _nativeService.UUID)
+				return;
+			
 			foreach (var c in args.Service.Characteristics)
 			{
 				var charId = c.UUID.ToString().ToGuid();
