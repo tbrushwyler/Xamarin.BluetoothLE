@@ -4,6 +4,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{94E4C1AC-F198-44B1-B3D0-32940E1AA2F4}"
 	ProjectSection(SolutionItems) = preProject
 		Xamarin.BluetoothLE.nuspec = Xamarin.BluetoothLE.nuspec
+		LICENSE.md = LICENSE.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Framework", "Framework", "{80A3AACB-DE77-41A6-839E-F58B8B7750A5}"
