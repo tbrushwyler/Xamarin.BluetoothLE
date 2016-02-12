@@ -4,7 +4,7 @@
     <version>1.0.0</version>
     <authors>Taylor Brushwyler</authors>
     <owners>Taylor Brushwyler</owners>
-    <licenseUrl>https://github.com/paulcbetts/ModernHttpClient/blob/master/COPYING</licenseUrl>
+    <licenseUrl>https://raw.githubusercontent.com/tbrushwyler/Xamarin.BluetoothLE/master/LICENSE.md</licenseUrl>
     <projectUrl>https://github.com/tbrushwyler/Xamarin.BluetoothLE</projectUrl>
     <id>XamarinBluetoothLE</id>
     <title>Xamarin.BluetoothLE</title>
