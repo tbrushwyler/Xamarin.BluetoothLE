@@ -18,7 +18,7 @@ namespace BluetoothLE.Example.Droid
 		{
 			base.OnCreate(bundle);
 
-			DependencyService.Register<IAdapter, Adapter>();
+			DependencyService.Register<BluetoothLE.Core.IAdapter, BluetoothLE.Droid.Adapter>();
 
 			global::Xamarin.Forms.Forms.Init(this, bundle);
 
