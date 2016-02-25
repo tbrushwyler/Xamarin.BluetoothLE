@@ -7,6 +7,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using Xamarin.Forms;
 
 namespace BluetoothLE.Example.Droid
 {
@@ -16,6 +17,8 @@ namespace BluetoothLE.Example.Droid
 		protected override void OnCreate(Bundle bundle)
 		{
 			base.OnCreate(bundle);
+
+			DependencyService.Register<IAdapter, Adapter>();
 
 			global::Xamarin.Forms.Forms.Init(this, bundle);
 
