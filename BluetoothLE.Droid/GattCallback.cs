@@ -48,9 +48,11 @@ namespace BluetoothLE.Droid
 			switch (newState)
 			{
 				case ProfileState.Disconnected:
+					device.State = DeviceState.Disconnected;
 					DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
 					break;
 				case ProfileState.Connected:
+					device.State = DeviceState.Connected;
 					DeviceConnected(this, new DeviceConnectionEventArgs(device));
 					break;
 			}

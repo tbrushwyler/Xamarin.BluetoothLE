@@ -95,7 +95,10 @@ namespace BluetoothLE.Droid
 
 			try
 			{
+				_gatt.Disconnect();
 				_gatt.Close();
+
+				State = DeviceState.Disconnected;
 			}
 			catch(Exception ex)
 			{
@@ -133,22 +136,7 @@ namespace BluetoothLE.Droid
 		/// Gets the state of the device
 		/// </summary>
 		/// <value>The device's state</value>
-		public DeviceState State
-		{
-			get
-			{
-				switch (_nativeDevice.BondState)
-				{
-					case Bond.Bonded:
-						return DeviceState.Connected;
-					case Bond.Bonding:
-						return DeviceState.Connecting;
-					case Bond.None:
-					default:
-						return DeviceState.Disconnected;
-				}
-			}
-		}
+		public DeviceState State { get; set; }
 
 		/// <summary>
 		/// Gets the discovered services for the device

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <version>1.0.0</version>
+    <version>1.0.1-alpha</version>
     <authors>Taylor Brushwyler</authors>
     <owners>Taylor Brushwyler</owners>
     <licenseUrl>https://raw.githubusercontent.com/tbrushwyler/Xamarin.BluetoothLE/master/LICENSE.md</licenseUrl>
