@@ -45,7 +45,7 @@ namespace BluetoothLE.Droid
 
 			if (status != GattStatus.Success)
 				return;
-
+            
 			var device = new Device(gatt.Device, gatt, this, 0);
 			switch (newState)
 			{
@@ -55,6 +55,7 @@ namespace BluetoothLE.Droid
                     try
                     {
                         gatt.Close();
+                        gatt = null;
                     }
                     catch (Exception ex)
                     {

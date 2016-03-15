@@ -241,14 +241,15 @@ namespace BluetoothLE.Droid
 		{
 			try
 			{
-				_gatt.Disconnect();
+                _gatt.Close(); // this will not trigger the OnConnectionStateChange.OnConnectionStateChange callback
+                _gatt = null;
+
+                DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
 			}
 			catch (Exception e)
 			{
 				System.Diagnostics.Debug.WriteLine(e.Message);
 			}
-
-			_gatt = null;
 		}
 	}
 }
