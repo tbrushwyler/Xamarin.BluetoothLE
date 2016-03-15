@@ -242,7 +242,6 @@ namespace BluetoothLE.Droid
 			try
 			{
 				_gatt.Disconnect();
-				_gatt.Close();
 			}
 			catch (Exception e)
 			{

@@ -2,6 +2,8 @@
 using Android.Bluetooth;
 using BluetoothLE.Core;
 using BluetoothLE.Core.Events;
+using Android.Util;
+using System.Diagnostics;
 
 namespace BluetoothLE.Droid
 {
@@ -48,12 +50,26 @@ namespace BluetoothLE.Droid
 			switch (newState)
 			{
 				case ProfileState.Disconnected:
-					device.State = DeviceState.Disconnected;
-					DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
+                    device.State = DeviceState.Disconnected;
+
+                    try
+                    {
+                        gatt.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("Unable to close connection to gatt. Exception: {0}", ex.Message);
+                    }
+                    finally
+                    {
+                        DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
+                    }
+
 					break;
 				case ProfileState.Connected:
 					device.State = DeviceState.Connected;
-					DeviceConnected(this, new DeviceConnectionEventArgs(device));
+					
+                    DeviceConnected(this, new DeviceConnectionEventArgs(device));   
 					break;
 			}
 		}
