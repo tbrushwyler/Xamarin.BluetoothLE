@@ -99,14 +99,15 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		public void StartScanningForDevices()
 		{
-			StartScanningForDevices(new string[0]);
+			StartScanningForDevices(false, new string[0]);
 		}
 
 		/// <summary>
 		/// Start scanning for devices.
 		/// </summary>
+		/// <param name="continuousScanning">Continuous scanning without timeout</param>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		public async void StartScanningForDevices(params string[] serviceUuids)
+		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids)
 		{
 			await WaitForState(CBCentralManagerState.PoweredOn);
 
@@ -119,22 +120,20 @@ namespace BluetoothLE.iOS
 			DiscoveredDevices = new List<IDevice>();
 			IsScanning = true;
 
-			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = true }; 	//REMARK: This is to enable continuous scanning
-																									//TODO: Make this behavior optional!
+			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = continuousScanning };
 
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
-			if(ScanTimeout == TimeSpan.FromTicks(0))
+			if(continuousScanning == false)
 			{
-				return;
-			}
+				// Wait for the timeout
+				await Task.Delay(ScanTimeout);
 
-			await Task.Delay(ScanTimeout);
-
-			if (IsScanning)
-			{
-				StopScanningForDevices();
-				ScanTimeoutElapsed(this, EventArgs.Empty);
+				if (IsScanning)
+				{
+					StopScanningForDevices();
+					ScanTimeoutElapsed(this, EventArgs.Empty);
+				}
 			}
 		}
 

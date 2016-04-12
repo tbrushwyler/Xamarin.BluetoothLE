@@ -70,14 +70,14 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		public void StartScanningForDevices()
 		{
-			StartScanningForDevices(new string[0]);
+			StartScanningForDevices(false, new string[0]);
 		}
 
 		/// <summary>
 		/// Start scanning for devices.
 		/// </summary>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		public async void StartScanningForDevices(params string[] serviceUuids)
+		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids)
 		{
 			DiscoveredDevices = new List<IDevice>();
 			IsScanning = true;
@@ -91,12 +91,15 @@ namespace BluetoothLE.Droid
 
 			_adapter.StartLeScan(uuids.ToArray(), this);
 
-			await Task.Delay(ScanTimeout);
-
-			if (IsScanning)
+			if(continuousScanning == false)
 			{
-				StopScanningForDevices();
-				ScanTimeoutElapsed(this, EventArgs.Empty);
+				await Task.Delay(ScanTimeout);
+
+				if (IsScanning)
+				{
+					StopScanningForDevices();
+					ScanTimeoutElapsed(this, EventArgs.Empty);
+				}
 			}
 		}
 
