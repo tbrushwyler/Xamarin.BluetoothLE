@@ -119,7 +119,15 @@ namespace BluetoothLE.iOS
 			DiscoveredDevices = new List<IDevice>();
 			IsScanning = true;
 
-			_central.ScanForPeripherals(uuids.ToArray());
+			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = true }; 	//REMARK: This is to enable continuous scanning
+																									//TODO: Make this behavior optional!
+
+			_central.ScanForPeripherals(uuids.ToArray(), options);
+
+			if(ScanTimeout == TimeSpan.FromTicks(0))
+			{
+				return;
+			}
 
 			await Task.Delay(ScanTimeout);
 
@@ -198,10 +206,26 @@ namespace BluetoothLE.iOS
 		private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e)
 		{
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			if (DiscoveredDevices.All(x => x.Id != deviceId))
+
+			//System.Diagnostics.Debug.WriteLine($"Discovered BT Device: {deviceId}");
+
+			var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
+
+			if(addedDevice == null)
 			{
-				var device = new Device(e.Peripheral);
+				// New Device
+				var device = new Device(e.Peripheral, e.RSSI);
+
 				DiscoveredDevices.Add(device);
+
+				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
+			}
+			else
+			{
+				var device = (Device)addedDevice;
+
+				device.UpdateRssi(e.RSSI);
+
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			}
 		}

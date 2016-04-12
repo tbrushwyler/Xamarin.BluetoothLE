@@ -61,4 +61,3 @@ namespace BluetoothLE.Core
 		void Disconnect();
 	}
 }
-
