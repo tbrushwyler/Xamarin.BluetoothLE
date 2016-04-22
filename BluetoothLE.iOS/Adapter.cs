@@ -9,32 +9,30 @@ using BluetoothLE.Core.Events;
 using CoreFoundation;
 using Foundation;
 
-namespace BluetoothLE.iOS
-{
+namespace BluetoothLE.iOS {
 	/// <summary>
 	/// Concrete implementation of <see cref="BluetoothLE.Core.IAdapter"/> interface.
 	/// </summary>
 	public class Adapter : CBPeripheralManagerDelegate, IAdapter {
 		private readonly CBCentralManager _central;
-	    private readonly CBPeripheralManager _peripheralManager;
+		private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
 
 		private static Adapter _current;
+		private bool _startAdvertise = false;
 
 		/// <summary>
 		/// Gets the current Adpater instance
 		/// </summary>
 		/// <value>The current Adapter instance</value>
-		public static Adapter Current
-		{
+		public static Adapter Current {
 			get { return _current; }
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Adapter"/> class.
 		/// </summary>
-		public Adapter()
-		{
+		public Adapter() {
 			_central = new CBCentralManager();
 
 			_central.DiscoveredPeripheral += DiscoveredPeripheral;
@@ -49,24 +47,32 @@ namespace BluetoothLE.iOS
 			_current = this;
 
 
-			_peripheralManager = new CBPeripheralManager(this, null);            
+			_peripheralManager = new CBPeripheralManager(this, null);
 		}
 
 		#region ICBPeripheralManagerDelegate implementation
 
 		public override void StateUpdated(CBPeripheralManager peripheral) {
-			switch(peripheral.State) {
+			switch (peripheral.State) {
 				case CBPeripheralManagerState.Unknown:
-					break;
 				case CBPeripheralManagerState.Resetting:
-					break;
 				case CBPeripheralManagerState.Unsupported:
-					break;
 				case CBPeripheralManagerState.Unauthorized:
-					break;
 				case CBPeripheralManagerState.PoweredOff:
+					PeripheralStateChanged?.Invoke(this, new PeripheralEventArgs(PeripheralState.NotReady));
 					break;
 				case CBPeripheralManagerState.PoweredOn:
+					if (_startAdvertise) {
+						var service = CBUUID.FromString("00000000-0000-1000-8000-00805F9B34FB");
+						_peripheralManager.AddService(new CBMutableService(service, true));
+						_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
+							ServicesUUID = new CBUUID[]{
+								service
+							},
+							LocalName = "iOSDude!",
+
+						});
+					}
 					break;
 			}
 		}
@@ -75,14 +81,10 @@ namespace BluetoothLE.iOS
 			var x = 0;
 		}
 
-
-
 		#endregion
 
-	    private async Task WaitForState(CBCentralManagerState state)
-		{
-			while (_central.State != state)
-			{
+		private async Task WaitForState(CBCentralManagerState state) {
+			while (_central.State != state) {
 				await Task.Run(() => _stateChanged.WaitOne());
 			}
 		}
@@ -92,37 +94,39 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when device discovered.
 		/// </summary>
-		public event EventHandler<DeviceDiscoveredEventArgs> DeviceDiscovered = delegate {};
+		public event EventHandler<DeviceDiscoveredEventArgs> DeviceDiscovered = delegate { };
 
 		/// <summary>
 		/// Occurs when device connected.
 		/// </summary>
-		public event EventHandler<DeviceConnectionEventArgs> DeviceConnected = delegate {};
+		public event EventHandler<DeviceConnectionEventArgs> DeviceConnected = delegate { };
 
 		/// <summary>
 		/// Occurs when device disconnected.
 		/// </summary>
-		public event EventHandler<DeviceConnectionEventArgs> DeviceDisconnected = delegate {};
+		public event EventHandler<DeviceConnectionEventArgs> DeviceDisconnected = delegate { };
 
-        /// <summary>
-        /// Occurs when advertising start fails
-        /// </summary>
-        public EventHandler<AdvertiseStartEventArgs> StartFailed = delegate { };
+		/// <summary>
+		/// Occurs when advertising start fails
+		/// </summary>
+		public EventHandler<AdvertiseStartEventArgs> StartFailed = delegate { };
 
-        /// <summary>
-        /// Occurs when advertising start succeeds
-        /// </summary>
-        public EventHandler<AdvertiseStartEventArgs> StartSuccess = delegate { };
+		/// <summary>
+		/// Occurs when advertising start succeeds
+		/// </summary>
+		public EventHandler<AdvertiseStartEventArgs> StartSuccess = delegate { };
 
-        /// <summary>
-        /// Occurs when scan timeout elapsed.
-        /// </summary>
-        public event EventHandler ScanTimeoutElapsed = delegate {};
+		public event EventHandler<PeripheralEventArgs> PeripheralStateChanged = delegate { };
+
+		/// <summary>
+		/// Occurs when scan timeout elapsed.
+		/// </summary>
+		public event EventHandler ScanTimeoutElapsed = delegate { };
 
 		/// <summary>
 		/// Occurs when a device failed to connect.
 		/// </summary>
-		public event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect = delegate {};
+		public event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect = delegate { };
 
 		/// <summary>
 		/// Gets or sets the amount of time to scan for devices.
@@ -139,8 +143,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Start scanning for devices.
 		/// </summary>
-		public void StartScanningForDevices()
-		{
+		public void StartScanningForDevices() {
 			StartScanningForDevices(false, new string[0]);
 		}
 
@@ -149,13 +152,11 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		/// <param name="continuousScanning">Continuous scanning without timeout</param>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids)
-		{
+		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids) {
 			await WaitForState(CBCentralManagerState.PoweredOn);
 
 			var uuids = new List<CBUUID>();
-			foreach (var guid in serviceUuids)
-			{
+			foreach (var guid in serviceUuids) {
 				uuids.Add(CBUUID.FromString(guid));
 			}
 
@@ -166,13 +167,11 @@ namespace BluetoothLE.iOS
 
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
-			if(continuousScanning == false)
-			{
+			if (continuousScanning == false) {
 				// Wait for the timeout
 				await Task.Delay(ScanTimeout);
 
-				if (IsScanning)
-				{
+				if (IsScanning) {
 					StopScanningForDevices();
 					ScanTimeoutElapsed(this, EventArgs.Empty);
 				}
@@ -182,8 +181,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Stop scanning for devices.
 		/// </summary>
-		public void StopScanningForDevices()
-		{
+		public void StopScanningForDevices() {
 			IsScanning = false;
 			_central.StopScan();
 		}
@@ -192,18 +190,15 @@ namespace BluetoothLE.iOS
 		/// Connect to a device.
 		/// </summary>
 		/// <param name="device">The device.</param>
-		public async void ConnectToDevice(IDevice device)
-		{
+		public async void ConnectToDevice(IDevice device) {
 			var peripheral = device.NativeDevice as CBPeripheral;
 			_central.ConnectPeripheral(peripheral);
 
 			await Task.Delay(ConnectionTimeout);
 
-			if (ConnectedDevices.All(x => x.Id != device.Id))
-			{
+			if (ConnectedDevices.All(x => x.Id != device.Id)) {
 				_central.CancelPeripheralConnection(peripheral);
-				var args = new DeviceConnectionEventArgs(device)
-				{
+				var args = new DeviceConnectionEventArgs(device) {
 					ErrorMessage = "The device connection timed out."
 				};
 
@@ -215,32 +210,26 @@ namespace BluetoothLE.iOS
 		/// Discconnect from a device.
 		/// </summary>
 		/// <param name="device">The device.</param>
-		public void DisconnectDevice(IDevice device)
-		{
+		public void DisconnectDevice(IDevice device) {
 			var peripheral = device.NativeDevice as CBPeripheral;
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
-	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
-	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
-	    public void StartAdvertising(string uuid) {
-			var service = CBUUID.FromString(uuid);
-			_peripheralManager.AddService(new CBMutableService(service, true));
-			_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
-				ServicesUUID = new CBUUID[]{
-					service
-				},
-				LocalName = "iOSDude!",
-			
-			});
-	    }
+		public void StartAdvertising(string uuid) {
+			if (_peripheralManager.State != CBPeripheralManagerState.PoweredOn) {
+				_startAdvertise = true;
+			}
+		}
 
-	    public void StopAdvertising() {
+		public void StopAdvertising() {
+			_startAdvertise = false;
 			_peripheralManager.StopAdvertising();
-	    }
+		}
 
-	    /// <summary>
+		/// <summary>
 		/// Gets a value indicating whether this instance is scanning.
 		/// </summary>
 		/// <value>true</value>
@@ -263,25 +252,21 @@ namespace BluetoothLE.iOS
 
 		#region CBCentralManager delegate methods
 
-		private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e)
-		{
+		private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
 
 			//System.Diagnostics.Debug.WriteLine($"Discovered BT Device: {deviceId}");
 
 			var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
 
-			if(addedDevice == null)
-			{
+			if (addedDevice == null) {
 				// New Device
 				var device = new Device(e.Peripheral, e.RSSI);
 
 				DiscoveredDevices.Add(device);
 
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-			}
-			else
-			{
+			} else {
 				var device = (Device)addedDevice;
 
 				device.UpdateRssi(e.RSSI);
@@ -290,36 +275,30 @@ namespace BluetoothLE.iOS
 			}
 		}
 
-		private void UpdatedState(object sender, EventArgs e)
-		{
+		private void UpdatedState(object sender, EventArgs e) {
 			_stateChanged.Set();
 		}
 
-		private void ConnectedPeripheral(object sender, CBPeripheralEventArgs e)
-		{
+		private void ConnectedPeripheral(object sender, CBPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			if (ConnectedDevices.All(x => x.Id != deviceId))
-			{
+			if (ConnectedDevices.All(x => x.Id != deviceId)) {
 				var device = new Device(e.Peripheral);
 				ConnectedDevices.Add(device);
 				DeviceConnected(this, new DeviceConnectionEventArgs(device));
 			}
 		}
 
-		private void DisconnectedPeripheral(object sender, CBPeripheralErrorEventArgs e)
-		{
+		private void DisconnectedPeripheral(object sender, CBPeripheralErrorEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
 			var connectedDevice = ConnectedDevices.FirstOrDefault(x => x.Id == deviceId);
 
-			if (connectedDevice != null)
-			{
+			if (connectedDevice != null) {
 				ConnectedDevices.Remove(connectedDevice);
 				DeviceDisconnected(this, new DeviceConnectionEventArgs(connectedDevice));
 			}
 		}
 
-		private void FailedToConnectPeripheral(object sender, CBPeripheralErrorEventArgs e)
-		{
+		private void FailedToConnectPeripheral(object sender, CBPeripheralErrorEventArgs e) {
 			var device = new Device(e.Peripheral);
 			var args = new DeviceConnectionEventArgs(device) {
 				ErrorMessage = e.Error.Description

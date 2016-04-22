@@ -30,10 +30,22 @@ namespace BluetoothLE.Core
 		/// </summary>
 		event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect;
 
-		/// <summary>
-		/// Occurs when scan timeout elapsed.
-		/// </summary>
-		event EventHandler ScanTimeoutElapsed;
+        /// <summary>
+        /// Occurs when advertising start fails
+        /// </summary>
+        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+
+        /// <summary>
+        /// Occurs when advertising start succeeds
+        /// </summary>
+        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+
+	    event EventHandler<PeripheralEventArgs> PeripheralStateChanged; 
+
+        /// <summary>
+        /// Occurs when scan timeout elapsed.
+        /// </summary>
+        event EventHandler ScanTimeoutElapsed;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is scanning.
@@ -92,16 +104,6 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
-
-        /// <summary>
-        /// Occurs when advertising start fails
-        /// </summary>
-        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
-
-        /// <summary>
-        /// Occurs when advertising start succeeds
-        /// </summary>
-        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
         void StartAdvertising(string uuid);
         void StopAdvertising();

@@ -28,14 +28,17 @@ namespace BluetoothLE.Droid {
             var appContext = Android.App.Application.Context;
             var manager = (BluetoothManager)appContext.GetSystemService("bluetooth");
             _adapter = manager.Adapter;
+
+            _adapter.SetName("Droid Dude!");
+
             _callback = new GattCallback();
             _callback.DeviceConnected += BluetoothGatt_DeviceConnected;
             _callback.DeviceDisconnected += BluetoothGatt_DeviceDisconnected;
-
+            
             _advertiseCallback = new AdvertiseCallback();
             _advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
             _advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
-            
+
             ConnectedDevices = new List<IDevice>();
         }
 
@@ -68,6 +71,8 @@ namespace BluetoothLE.Droid {
         /// Occurs when a device failed to connect.
         /// </summary>
         public event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect = delegate { };
+
+        public event EventHandler<PeripheralEventArgs> PeripheralStateChanged;
 
         /// <summary>
         /// Occurs when scan timeout elapsed.
