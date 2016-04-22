@@ -40,8 +40,6 @@ namespace BluetoothLE.Core
         /// </summary>
         event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
-	    event EventHandler<PeripheralEventArgs> PeripheralStateChanged; 
-
         /// <summary>
         /// Occurs when scan timeout elapsed.
         /// </summary>

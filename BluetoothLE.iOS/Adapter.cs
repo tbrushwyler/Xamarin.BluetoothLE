@@ -19,7 +19,7 @@ namespace BluetoothLE.iOS {
 		private readonly AutoResetEvent _stateChanged;
 
 		private static Adapter _current;
-		private bool _startAdvertise = false;
+		private Task _startAdvertise;
 
 		/// <summary>
 		/// Gets the current Adpater instance
@@ -52,26 +52,19 @@ namespace BluetoothLE.iOS {
 
 		#region ICBPeripheralManagerDelegate implementation
 
-		public override void StateUpdated(CBPeripheralManager peripheral) {
+		public override async void StateUpdated(CBPeripheralManager peripheral) {
 			switch (peripheral.State) {
 				case CBPeripheralManagerState.Unknown:
 				case CBPeripheralManagerState.Resetting:
 				case CBPeripheralManagerState.Unsupported:
 				case CBPeripheralManagerState.Unauthorized:
 				case CBPeripheralManagerState.PoweredOff:
-					PeripheralStateChanged?.Invoke(this, new PeripheralEventArgs(PeripheralState.NotReady));
 					break;
 				case CBPeripheralManagerState.PoweredOn:
-					if (_startAdvertise) {
-						var service = CBUUID.FromString("00000000-0000-1000-8000-00805F9B34FB");
-						_peripheralManager.AddService(new CBMutableService(service, true));
-						_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
-							ServicesUUID = new CBUUID[]{
-								service
-							},
-							LocalName = "iOSDude!",
-
-						});
+					if (_startAdvertise != null) {
+						_startAdvertise.Start();
+						await _startAdvertise;
+						_startAdvertise = null;
 					}
 					break;
 			}
@@ -109,15 +102,13 @@ namespace BluetoothLE.iOS {
 		/// <summary>
 		/// Occurs when advertising start fails
 		/// </summary>
-		public EventHandler<AdvertiseStartEventArgs> StartFailed = delegate { };
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed = delegate { };
 
 		/// <summary>
 		/// Occurs when advertising start succeeds
 		/// </summary>
-		public EventHandler<AdvertiseStartEventArgs> StartSuccess = delegate { };
-
-		public event EventHandler<PeripheralEventArgs> PeripheralStateChanged = delegate { };
-
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess = delegate { };
+		
 		/// <summary>
 		/// Occurs when scan timeout elapsed.
 		/// </summary>
@@ -215,17 +206,28 @@ namespace BluetoothLE.iOS {
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
-		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
-		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+		public async void StartAdvertising(string uuid) {
+			_startAdvertise = new Task(() => {
+				var service = CBUUID.FromString("00000000-0000-1000-8000-00805F9B34FB");
+				_peripheralManager.AddService(new CBMutableService(service, true));
+				_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
+					ServicesUUID = new CBUUID[]{
+								service
+							},
+					LocalName = "iOSDude!",
 
-		public void StartAdvertising(string uuid) {
-			if (_peripheralManager.State != CBPeripheralManagerState.PoweredOn) {
-				_startAdvertise = true;
+				});
+			});
+
+			if (_peripheralManager.State == CBPeripheralManagerState.PoweredOn) {
+				_startAdvertise.Start();
+				await _startAdvertise;
+				_startAdvertise = null;
 			}
 		}
 
 		public void StopAdvertising() {
-			_startAdvertise = false;
+			_startAdvertise = null;
 			_peripheralManager.StopAdvertising();
 		}
 

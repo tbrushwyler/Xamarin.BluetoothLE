@@ -72,20 +72,25 @@ namespace BluetoothLE.Droid {
         /// </summary>
         public event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect = delegate { };
 
-        public event EventHandler<PeripheralEventArgs> PeripheralStateChanged;
-
         /// <summary>
         /// Occurs when scan timeout elapsed.
         /// </summary>
         public event EventHandler ScanTimeoutElapsed = delegate { };
 
-        public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
-        public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+		/// <summary>
+		/// Occurs when advertising start fails
+		/// </summary>
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed = delegate { };
 
-        /// <summary>
-        /// Start scanning for devices.
-        /// </summary>
-        public void StartScanningForDevices() {
+		/// <summary>
+		/// Occurs when advertising start succeeds
+		/// </summary>
+		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess = delegate { };
+
+		/// <summary>
+		/// Start scanning for devices.
+		/// </summary>
+		public void StartScanningForDevices() {
             StartScanningForDevices(false, new string[0]);
         }
 
@@ -156,6 +161,10 @@ namespace BluetoothLE.Droid {
             }
         }
 
+        /// <summary>
+        /// Starts peripheral advertising
+        /// </summary>
+        /// <param name="uuid"></param>
         public void StartAdvertising(string uuid) {
             var settings = new AdvertiseSettings.Builder()
                 .SetAdvertiseMode(AdvertiseMode.Balanced)
@@ -172,6 +181,9 @@ namespace BluetoothLE.Droid {
             _adapter.BluetoothLeAdvertiser.StartAdvertising(settings, data, _advertiseCallback);
         }
 
+		/// <summary>
+		/// Stops peripheral advertising
+		/// </summary>
         public void StopAdvertising() {
             _adapter.BluetoothLeAdvertiser.StopAdvertising(_advertiseCallback);
         }
