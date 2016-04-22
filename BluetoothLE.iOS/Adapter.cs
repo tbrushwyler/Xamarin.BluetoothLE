@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 using System.Linq;
 using BluetoothLE.Core.Events;
 using CoreFoundation;
+using Foundation;
 
 namespace BluetoothLE.iOS
 {
 	/// <summary>
 	/// Concrete implementation of <see cref="BluetoothLE.Core.IAdapter"/> interface.
 	/// </summary>
-	public class Adapter : IAdapter {
+	public class Adapter : CBPeripheralManagerDelegate, IAdapter {
 		private readonly CBCentralManager _central;
 	    private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
@@ -47,14 +48,36 @@ namespace BluetoothLE.iOS
 
 			_current = this;
 
-            _peripheralManager = new CBPeripheralManager(null, DispatchQueue.MainQueue);
-            _peripheralManager.StateUpdated += PeripheralManagerOnStateUpdated;
-            
+
+			_peripheralManager = new CBPeripheralManager(this, null);            
 		}
 
-	    private void PeripheralManagerOnStateUpdated(object sender, EventArgs eventArgs) {
-	        
-	    }
+		#region ICBPeripheralManagerDelegate implementation
+
+		public override void StateUpdated(CBPeripheralManager peripheral) {
+			switch(peripheral.State) {
+				case CBPeripheralManagerState.Unknown:
+					break;
+				case CBPeripheralManagerState.Resetting:
+					break;
+				case CBPeripheralManagerState.Unsupported:
+					break;
+				case CBPeripheralManagerState.Unauthorized:
+					break;
+				case CBPeripheralManagerState.PoweredOff:
+					break;
+				case CBPeripheralManagerState.PoweredOn:
+					break;
+			}
+		}
+
+		public override void AdvertisingStarted(CBPeripheralManager peripheral, NSError error) {
+			var x = 0;
+		}
+
+
+
+		#endregion
 
 	    private async Task WaitForState(CBCentralManagerState state)
 		{
@@ -200,12 +223,21 @@ namespace BluetoothLE.iOS
 
 	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
 	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
-	    public void StartAdvertising() {
-	        throw new NotImplementedException();
+
+	    public void StartAdvertising(string uuid) {
+			var service = CBUUID.FromString(uuid);
+			_peripheralManager.AddService(new CBMutableService(service, true));
+			_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
+				ServicesUUID = new CBUUID[]{
+					service
+				},
+				LocalName = "iOSDude!",
+			
+			});
 	    }
 
 	    public void StopAdvertising() {
-	        throw new NotImplementedException();
+			_peripheralManager.StopAdvertising();
 	    }
 
 	    /// <summary>
