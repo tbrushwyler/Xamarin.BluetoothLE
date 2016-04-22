@@ -6,15 +6,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using BluetoothLE.Core.Events;
+using CoreFoundation;
 
 namespace BluetoothLE.iOS
 {
 	/// <summary>
 	/// Concrete implementation of <see cref="BluetoothLE.Core.IAdapter"/> interface.
 	/// </summary>
-	public class Adapter : IAdapter
-	{
+	public class Adapter : IAdapter {
 		private readonly CBCentralManager _central;
+	    private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
 
 		private static Adapter _current;
@@ -45,9 +46,17 @@ namespace BluetoothLE.iOS
 			_stateChanged = new AutoResetEvent(false);
 
 			_current = this;
+
+            _peripheralManager = new CBPeripheralManager(null, DispatchQueue.MainQueue);
+            _peripheralManager.StateUpdated += PeripheralManagerOnStateUpdated;
+            
 		}
 
-		private async Task WaitForState(CBCentralManagerState state)
+	    private void PeripheralManagerOnStateUpdated(object sender, EventArgs eventArgs) {
+	        
+	    }
+
+	    private async Task WaitForState(CBCentralManagerState state)
 		{
 			while (_central.State != state)
 			{
@@ -72,10 +81,20 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		public event EventHandler<DeviceConnectionEventArgs> DeviceDisconnected = delegate {};
 
-		/// <summary>
-		/// Occurs when scan timeout elapsed.
-		/// </summary>
-		public event EventHandler ScanTimeoutElapsed = delegate {};
+        /// <summary>
+        /// Occurs when advertising start fails
+        /// </summary>
+        public EventHandler<AdvertiseStartEventArgs> StartFailed = delegate { };
+
+        /// <summary>
+        /// Occurs when advertising start succeeds
+        /// </summary>
+        public EventHandler<AdvertiseStartEventArgs> StartSuccess = delegate { };
+
+        /// <summary>
+        /// Occurs when scan timeout elapsed.
+        /// </summary>
+        public event EventHandler ScanTimeoutElapsed = delegate {};
 
 		/// <summary>
 		/// Occurs when a device failed to connect.
@@ -179,7 +198,17 @@ namespace BluetoothLE.iOS
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
-		/// <summary>
+	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+	    public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+	    public void StartAdvertising() {
+	        throw new NotImplementedException();
+	    }
+
+	    public void StopAdvertising() {
+	        throw new NotImplementedException();
+	    }
+
+	    /// <summary>
 		/// Gets a value indicating whether this instance is scanning.
 		/// </summary>
 		/// <value>true</value>

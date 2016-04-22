@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.Core
@@ -92,6 +93,18 @@ namespace BluetoothLE.Core
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
 
-	}
+        /// <summary>
+        /// Occurs when advertising start fails
+        /// </summary>
+        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+
+        /// <summary>
+        /// Occurs when advertising start succeeds
+        /// </summary>
+        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+
+        void StartAdvertising(string uuid);
+        void StopAdvertising();
+    }
 }
 
