@@ -264,17 +264,19 @@ namespace BluetoothLE.iOS {
 			if (addedDevice == null) {
 				// New Device
 				var device = new Device(e.Peripheral, e.RSSI);
-
 				DiscoveredDevices.Add(device);
-
+				ProcessData(ref device, e.AdvertisementData);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			} else {
 				var device = (Device)addedDevice;
 
 				device.UpdateRssi(e.RSSI);
-
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			}
+		}
+
+		private void ProcessData(ref Device device, NSDictionary advertisementData) {
+			
 		}
 
 		private void UpdatedState(object sender, EventArgs e) {

@@ -15,31 +15,36 @@ namespace BluetoothLE.Droid {
     /// <summary>
     /// Concrete implementation of <see cref="BluetoothLE.Core.IAdapter"/> interface.
     /// </summary>
-    public class Adapter : Java.Lang.Object, BluetoothAdapter.ILeScanCallback, IAdapter {
+    public class Adapter : Java.Lang.Object, IAdapter {
         private readonly BluetoothAdapter _adapter;
         private readonly GattCallback _callback;
-        private BluetoothGatt _gatt;
-        private AdvertiseCallback _advertiseCallback;
+        private readonly AdvertiseCallback _advertiseCallback;
+	    private readonly ScanCallback _scanCallback;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
-        /// </summary>
-        public Adapter() {
+		private BluetoothGatt _gatt;
+	    private BluetoothLeScanner _bluetoothLeScanner;
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
+		/// </summary>
+		public Adapter() {
             var appContext = Android.App.Application.Context;
             var manager = (BluetoothManager)appContext.GetSystemService("bluetooth");
             _adapter = manager.Adapter;
-
+			_bluetoothLeScanner = _adapter.BluetoothLeScanner;
+			
             _adapter.SetName("Droid Dude!");
 
             _callback = new GattCallback();
             _callback.DeviceConnected += BluetoothGatt_DeviceConnected;
             _callback.DeviceDisconnected += BluetoothGatt_DeviceDisconnected;
-            
-            _advertiseCallback = new AdvertiseCallback();
+
+			_advertiseCallback = new AdvertiseCallback();
             _advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
             _advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
 
-            ConnectedDevices = new List<IDevice>();
+			_scanCallback = new ScanCallback();
+
+			ConnectedDevices = new List<IDevice>();
         }
 
         private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
@@ -108,7 +113,11 @@ namespace BluetoothLE.Droid {
                 uuids.Add(UUID.FromString(guid.ToString("D")));
             }
 
-            _adapter.StartLeScan(uuids.ToArray(), this);
+			//TODO: Power options, whitelist UUIDS
+			_adapter.BluetoothLeScanner.StartScan(_scanCallback);
+
+            //_adapter.StartLeScan(uuids.ToArray(), this);
+
 
             if (continuousScanning == false) {
                 await Task.Delay(ScanTimeout);

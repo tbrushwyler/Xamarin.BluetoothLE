@@ -25,12 +25,12 @@ namespace BluetoothLE.Example.Pages
 			InitializeComponent();
 
 			BindingContext = _device;
-			serviceListView.ItemsSource = DiscoveredServices;
-			serviceListView.ItemSelected += ServiceSelected;
+			//serviceListView.ItemsSource = DiscoveredServices;
+			//serviceListView.ItemSelected += ServiceSelected;
 
 			App.BluetoothAdapter.DeviceDisconnected += DeviceDisconnected;
 
-			_device.DiscoverServices();
+			//_device.DiscoverServices();
 		}
 
 		void ServiceSelected (object sender, SelectedItemChangedEventArgs e)
@@ -59,10 +59,11 @@ namespace BluetoothLE.Example.Pages
 		void ServiceDiscovered (object sender, ServiceDiscoveredEventArgs e)
 		{
 			var grouping = new Grouping<IService, ICharacteristic>(e.Service);
-			DiscoveredServices.Add(grouping);
 
 			e.Service.CharacteristicDiscovered += (s, evt) => CharacteristicDiscovered(s, evt, grouping);
 			e.Service.DiscoverCharacteristics();
+
+			DiscoveredServices.Add(grouping);
 		}
 
 		#endregion
