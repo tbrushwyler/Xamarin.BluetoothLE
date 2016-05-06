@@ -43,17 +43,9 @@ namespace BluetoothLE.Droid {
 			_advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
 			_advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
 
-			_scanCallback = new ScanCallback();
-
 			ConnectedDevices = new List<IDevice>();
-		}
-
-		private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
-			AdvertiseStartSuccess?.Invoke(this, advertiseStartEventArgs);
-		}
-
-		private void BluetoothGatt_AdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
-			AdvertiseStartFailed?.Invoke(this, advertiseStartEventArgs);
+			_scanCallback = new ScanCallback();
+			_scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
 		}
 
 		#region IAdapter implementation
@@ -292,6 +284,21 @@ namespace BluetoothLE.Droid {
 			} catch (Exception e) {
 				System.Diagnostics.Debug.WriteLine(e.Message);
 			}
+		}
+
+		private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
+			if (DiscoveredDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+				DiscoveredDevices.Add(deviceDiscoveredEventArgs.Device);
+				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
+			}
+		}
+
+		private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+			AdvertiseStartSuccess?.Invoke(this, advertiseStartEventArgs);
+		}
+
+		private void BluetoothGatt_AdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+			AdvertiseStartFailed?.Invoke(this, advertiseStartEventArgs);
 		}
 	}
 }

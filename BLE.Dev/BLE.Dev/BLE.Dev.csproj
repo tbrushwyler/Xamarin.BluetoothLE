@@ -40,6 +40,7 @@
     <Compile Include="DeviceDetailPage.xaml.cs">
       <DependentUpon>DeviceDetailPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DevicePageViewModel.cs" />
     <Compile Include="DeviceViewModel.cs" />
     <Compile Include="DevicePage.xaml.cs">
       <DependentUpon>DevicePage.xaml</DependentUpon>
