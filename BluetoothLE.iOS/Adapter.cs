@@ -224,11 +224,9 @@ namespace BluetoothLE.iOS {
 
 				var optionsDict = new NSMutableDictionary();
 				optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
-				optionsDict[CBAdvertisement.DataOverflowServiceUUIDsKey] = cbuuIdArray;
+				optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;
 				if (byteData!= null) {
-					var nsData = NSData.FromArray(byteData);
-					optionsDict[CBAdvertisement.DataServiceDataKey] = nsData;
-					
+//					throw new Exception("iOS Does not support advertisement data in peripheral mode");
 				}
 				_peripheralManager.StartAdvertising(optionsDict);
 			});
@@ -279,7 +277,7 @@ namespace BluetoothLE.iOS {
 				// New Device
 				var device = new Device(e.Peripheral, e.RSSI);
 				DiscoveredDevices.Add(device);
-				ProcessData(ref device, e.AdvertisementData);
+				device.AdvertismentData = ProcessData(e.AdvertisementData);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			} else {
 				var device = (Device)addedDevice;
@@ -289,22 +287,24 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
-		private Dictionary<Guid, byte[]> ProcessData(ref Device device, NSDictionary advertisementData) {
-			var dict = new Dictionary<Guid, byte[]>();
+		private Dictionary<Guid, byte[]> ProcessData(NSDictionary advertisementData) {
+			Dictionary<Guid, byte[]> resultData = new Dictionary<Guid, byte[]>();
 			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceUUIDsKey)){
-				
 			}
-			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)) {
-				var dataServiceDict = advertisementData[CBAdvertisement.DataServiceDataKey] as NSDictionary;
-				if (dataServiceDict == null) {
-					return dict;
-				}
-				foreach (var dataPair in dataServiceDict) {
-					var uuid = dataPair.Key;
-					var data = dataPair.Value;
+			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)){
+				var dataDictionary = advertisementData[CBAdvertisement.DataServiceDataKey] as NSDictionary;
+				foreach(var dataPair in dataDictionary){
+					var uuid = dataPair.Key as CBUUID;
+					var data = dataPair.Value as NSData;
+
+					var guid = uuid.ToString().ToGuid();
+					byte[] dataBytes = new byte[data.Length];
+					System.Runtime.InteropServices.Marshal.Copy(data.Bytes, dataBytes, 0, Convert.ToInt32(data.Length));
+
+					resultData[guid] = dataBytes;
 				}
 			}
-			return dict;
+			return resultData;
 		}
 
 		private void UpdatedState(object sender, EventArgs e) {
