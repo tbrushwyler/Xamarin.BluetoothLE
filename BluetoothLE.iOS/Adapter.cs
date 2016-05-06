@@ -289,13 +289,22 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
-		private void ProcessData(ref Device device, NSDictionary advertisementData) {
+		private Dictionary<Guid, byte[]> ProcessData(ref Device device, NSDictionary advertisementData) {
+			var dict = new Dictionary<Guid, byte[]>();
 			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceUUIDsKey)){
 				
 			}
-			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)){
-				
+			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)) {
+				var dataServiceDict = advertisementData[CBAdvertisement.DataServiceDataKey] as NSDictionary;
+				if (dataServiceDict == null) {
+					return dict;
+				}
+				foreach (var dataPair in dataServiceDict) {
+					var uuid = dataPair.Key;
+					var data = dataPair.Value;
+				}
 			}
+			return dict;
 		}
 
 		private void UpdatedState(object sender, EventArgs e) {

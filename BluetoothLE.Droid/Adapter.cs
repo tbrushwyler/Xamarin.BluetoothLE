@@ -226,25 +226,6 @@ namespace BluetoothLE.Droid {
 
 		#endregion
 
-		#region ILeScanCallback implementation
-
-		/// <summary>
-		/// Raises the le scan event.
-		/// </summary>
-		/// <param name="bleDevice">The BLE device that was discovered.</param>
-		/// <param name="rssi">Rssi.</param>
-		/// <param name="scanRecord">Scan record.</param>
-		public void OnLeScan(BluetoothDevice bleDevice, int rssi, byte[] scanRecord) {
-			var deviceId = Device.DeviceIdFromAddress(bleDevice.Address);
-			if (DiscoveredDevices.All(x => x.Id != deviceId)) {
-				var device = new Device(bleDevice, null, null, rssi);
-				DiscoveredDevices.Add(device);
-				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-			}
-		}
-
-		#endregion
-
 		#region GattCallback delegate methods
 
 		private void BluetoothGatt_DeviceConnected(object sender, DeviceConnectionEventArgs e) {

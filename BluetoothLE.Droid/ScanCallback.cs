@@ -6,6 +6,7 @@ using System.Text;
 using Android.App;
 using Android.Bluetooth.LE;
 using Android.Content;
+using Android.Drm;
 using Android.OS;
 using Android.Runtime;
 using Android.Views;
@@ -22,8 +23,21 @@ namespace BluetoothLE.Droid {
 		public override void OnScanResult(ScanCallbackType callbackType, ScanResult result) {
 			base.OnScanResult(callbackType, result);
 			var device=  new Device(result.Device, null, null, result.Rssi);
+			if (result.ScanRecord != null) {
+				device.AdvertismentData = ProcessData(result.ScanRecord);
+			}
 			var eventArgs = new DeviceDiscoveredEventArgs(device);
 			DeviceDiscovered?.Invoke(this, eventArgs);
+		}
+
+		private Dictionary<Guid, byte[]> ProcessData(ScanRecord scanRecord) {
+			var dict = new Dictionary<Guid, byte[]>();
+			foreach (var serviceData in scanRecord.ServiceData) {
+				var guid = Guid.ParseExact(serviceData.Key.ToString(), "d");
+				var data = serviceData.Value;
+				dict[guid] = data;
+			}
+			return dict;
 		}
 
 		public override void OnBatchScanResults(IList<ScanResult> results) {

@@ -28,6 +28,7 @@ namespace BluetoothLE.iOS
 			_peripheral.DiscoveredService += DiscoveredService;
 
 			Services = new List<IService>();
+			AdvertismentData = new Dictionary<Guid, byte[]>();
 		}
 
 		/// <summary>
@@ -111,6 +112,8 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		/// <value>The RSSI in decibels</value>
 		public int Rssi { get { return _rssi; } }
+
+		public Dictionary<Guid, byte[]> AdvertismentData { get; internal set; }
 		//public int Rssi { get { return _peripheral.RSSI == null ? 0 : _peripheral.RSSI.Int32Value; } }
 
 		/// <summary>

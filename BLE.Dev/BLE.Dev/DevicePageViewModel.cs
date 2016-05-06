@@ -36,7 +36,7 @@ namespace BLE.Dev {
 			_adapter.DeviceConnected += AdapterOnDeviceConnected;
 
 			_adapter.StartScanningForDevices(true);
-			_adapter.StartAdvertising("NSTest", "9900".ToGuid(), packet.ToBytes());
+			_adapter.StartAdvertising("NSTest", "0099".ToGuid(), packet.ToBytes());
 
 		}
 

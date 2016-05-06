@@ -33,6 +33,11 @@ namespace BluetoothLE.Core
 		int Rssi { get; }
 
 		/// <summary>
+		/// Advertisment data found at device discovery
+		/// </summary>
+		Dictionary<Guid, byte[]> AdvertismentData { get; }
+
+		/// <summary>
 		/// Gets the native device object reference. Should be cast to the appropriate type.
 		/// </summary>
 		/// <value>The native device</value>

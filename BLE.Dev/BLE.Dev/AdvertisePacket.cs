@@ -9,10 +9,15 @@ using System.Threading.Tasks;
 namespace BLE.Dev {
 	[StructLayout(LayoutKind.Sequential)]
 	public struct AdvertisePacket {
-		public int GatewayState;
+		public byte[] Data;
 
 		public AdvertisePacket(int gatewayState, long timeStamp) {
-			GatewayState = gatewayState;
+			Data = new byte[] {
+				0xB0, 0x0B,
+				0xB0, 0x0B,
+				0xB0, 0x0B,
+				0xB0, 0x0B
+			};
 		}
 
 		public byte[] ToBytes() {

@@ -4,5 +4,6 @@
              x:Class="BLE.Dev.DeviceDetailPage">
   <StackLayout VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
   <Label Text="{Binding Name}" VerticalOptions="Center" HorizontalOptions="Center" />
+    
   </StackLayout>
 </ContentPage>
