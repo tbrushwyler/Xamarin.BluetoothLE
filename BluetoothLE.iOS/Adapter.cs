@@ -2,9 +2,11 @@
 using BluetoothLE.Core;
 using CoreBluetooth;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using BluetoothLE.Core.Events;
 using CoreFoundation;
 using Foundation;
@@ -206,17 +208,25 @@ namespace BluetoothLE.iOS {
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
-		public async void StartAdvertising(string uuid) {
-			_startAdvertise = new Task(() => {
-				var service = CBUUID.FromString("00000000-0000-1000-8000-00805F9B34FB");
-				_peripheralManager.AddService(new CBMutableService(service, true));
-				_peripheralManager.StartAdvertising(new StartAdvertisingOptions() {
-					ServicesUUID = new CBUUID[]{
-								service
-							},
-					LocalName = "iOSDude!",
+		public async void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null){
 
-				});
+			_startAdvertise = new Task(() => {
+				var cbuuid = CBUUID.FromString(serviceUuid.ToString());
+				var cbuuIdArray = new NSMutableArray();
+				cbuuIdArray.Add(cbuuid);
+
+				var service = new CBMutableService(cbuuid, true);
+				_peripheralManager.AddService(service);
+
+				var optionsDict = new NSMutableDictionary();
+				optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
+				optionsDict[CBAdvertisement.DataOverflowServiceUUIDsKey] = cbuuIdArray;
+				if (byteData!= null) {
+					var nsData = NSData.FromArray(byteData);
+					optionsDict[CBAdvertisement.DataServiceDataKey] = nsData;
+					
+				}
+				_peripheralManager.StartAdvertising(optionsDict);
 			});
 
 			if (_peripheralManager.State == CBPeripheralManagerState.PoweredOn) {

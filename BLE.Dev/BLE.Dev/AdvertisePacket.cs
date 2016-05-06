@@ -1,0 +1,38 @@
+﻿using System;
+using System.Runtime.Serialization;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace BLE.Dev {
+	[StructLayout(LayoutKind.Sequential)]
+	public struct AdvertisePacket {
+		public int GatewayState;
+
+		public AdvertisePacket(int gatewayState, long timeStamp) {
+			GatewayState = gatewayState;
+		}
+
+		public byte[] ToBytes() {
+			byte[] arr = null;
+			IntPtr ptr = IntPtr.Zero;
+			try {
+				int size = Marshal.SizeOf(this);
+				arr = new byte[size];
+				ptr = Marshal.AllocHGlobal(size);
+				Marshal.StructureToPtr(this, ptr, true);
+				Marshal.Copy(ptr, arr, 0, size);
+			} catch (Exception e) {
+				throw new Exception("Error converting to bytes", e);
+			} finally {
+				Marshal.FreeHGlobal(ptr);
+			}
+			if (arr.Length > 29) {
+				throw new Exception("Data cannot exceed 29 bytes");
+			}
+			return arr;
+		}
+	}
+}

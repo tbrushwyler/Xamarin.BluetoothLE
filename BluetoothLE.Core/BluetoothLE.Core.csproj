@@ -47,6 +47,7 @@
     <Compile Include="Events\DeviceConnectionEventArgs.cs" />
     <Compile Include="Events\DeviceDiscoveredEventArgs.cs" />
     <Compile Include="Events\CharacteristicDiscoveredEventArgs.cs" />
+    <Compile Include="Serialization.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup />

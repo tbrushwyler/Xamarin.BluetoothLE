@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using BluetoothLE.Core.Events;
 
-namespace BluetoothLE.Core
-{
+namespace BluetoothLE.Core {
 	/// <summary>
 	/// Adapter interface that handles device discovery and connection.
 	/// </summary>
-	public interface IAdapter
-	{
+	public interface IAdapter {
 		/// <summary>
 		/// Occurs when device discovered.
 		/// </summary>
@@ -30,20 +28,20 @@ namespace BluetoothLE.Core
 		/// </summary>
 		event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect;
 
-        /// <summary>
-        /// Occurs when advertising start fails
-        /// </summary>
-        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+		/// <summary>
+		/// Occurs when advertising start fails
+		/// </summary>
+		event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
 
-        /// <summary>
-        /// Occurs when advertising start succeeds
-        /// </summary>
-        event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
+		/// <summary>
+		/// Occurs when advertising start succeeds
+		/// </summary>
+		event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
-        /// <summary>
-        /// Occurs when scan timeout elapsed.
-        /// </summary>
-        event EventHandler ScanTimeoutElapsed;
+		/// <summary>
+		/// Occurs when scan timeout elapsed.
+		/// </summary>
+		event EventHandler ScanTimeoutElapsed;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is scanning.
@@ -103,8 +101,13 @@ namespace BluetoothLE.Core
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
 
-        void StartAdvertising(string uuid);
-        void StopAdvertising();
-    }
+
+		void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null);
+
+		/// <summary>
+		/// Stop advertising
+		/// </summary>
+		void StopAdvertising();
+	}
 }
 

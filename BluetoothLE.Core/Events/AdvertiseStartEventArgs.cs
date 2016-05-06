@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace BluetoothLE.Core.Events {
     public enum AdvertiseStatus {
         None,
-        InternalError,
+        InternalError, 
         Unsupported
     }
 

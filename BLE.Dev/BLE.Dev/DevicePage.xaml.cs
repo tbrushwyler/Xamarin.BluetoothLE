@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using Xamarin.Forms;
 using BluetoothLE.Core;
@@ -15,14 +16,25 @@ namespace BLE.Dev {
 
 			_adapter = DependencyService.Get<IAdapter>();
 			_devices = new ObservableCollection<DeviceViewModel>();
-
+			var packet = new AdvertisePacket(2, 654321);
+			
+			_adapter.AdvertiseStartFailed += AdapterOnAdvertiseStartFailed;
+			_adapter.AdvertiseStartSuccess += AdapterOnAdvertiseStartSuccess;
 			// Limit to northstar services
 			_adapter.StartScanningForDevices(true);
-
+			_adapter.StartAdvertising("NSTest", "9900".ToGuid(), packet.ToBytes());
 			_adapter.DeviceDiscovered += AdapterOnDeviceDiscovered;
 			_adapter.DeviceConnected += AdapterOnDeviceConnected;
 			ListView.ItemsSource = _devices;
 			ListView.ItemSelected += ListViewOnItemSelected;
+		}
+
+		private void AdapterOnAdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+			
+		}
+
+		private void AdapterOnAdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+			throw new Exception("Avertise failed");
 		}
 
 		private void ListViewOnItemSelected(object sender, SelectedItemChangedEventArgs selectedItemChangedEventArgs) {

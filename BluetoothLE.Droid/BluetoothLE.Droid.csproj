@@ -51,6 +51,7 @@
     <Compile Include="Adapter.cs" />
     <Compile Include="Characteristic.cs" />
     <Compile Include="Device.cs" />
+    <Compile Include="ScanCallback.cs" />
     <Compile Include="Service.cs" />
     <Compile Include="GattCallback.cs" />
     <Compile Include="Configuration.cs" />
