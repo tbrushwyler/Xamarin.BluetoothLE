@@ -9,8 +9,9 @@ using BluetoothLE.Core.Events;
 namespace BLE.Dev {
 	partial class DevicePage : ContentPage {
 		public DevicePage() {
-			InitializeComponent();
 			BindingContext = new DevicePageViewModel();
+
+			InitializeComponent();
 			ListView.ItemSelected += ListViewOnItemSelected;
 		}
 

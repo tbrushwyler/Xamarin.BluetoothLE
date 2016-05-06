@@ -73,7 +73,11 @@ namespace BluetoothLE.iOS {
 		}
 
 		public override void AdvertisingStarted(CBPeripheralManager peripheral, NSError error) {
-			var x = 0;
+			if (error == null) {
+				AdvertiseStartSuccess?.Invoke(this, new AdvertiseStartEventArgs(AdvertiseStatus.None));
+			} else {
+				AdvertiseStartFailed?.Invoke(this, new AdvertiseStartEventArgs(AdvertiseStatus.InternalError));
+			}
 		}
 
 		#endregion
@@ -286,7 +290,12 @@ namespace BluetoothLE.iOS {
 		}
 
 		private void ProcessData(ref Device device, NSDictionary advertisementData) {
-			
+			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceUUIDsKey)){
+				
+			}
+			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)){
+				
+			}
 		}
 
 		private void UpdatedState(object sender, EventArgs e) {

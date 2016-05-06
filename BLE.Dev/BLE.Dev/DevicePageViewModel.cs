@@ -13,30 +13,38 @@ namespace BLE.Dev {
 	class DevicePageViewModel : ViewModelBase{
 		private IAdapter _adapter;
 		private string _advertiseStatus = "Not advertising";
-		public ObservableCollection<DeviceViewModel> Devices;
+		public ObservableCollection<DeviceViewModel> Devices { get; private set;}
 
 		public string AdvertiseStatus {
 			get { return _advertiseStatus; }
+			set {
+				_advertiseStatus = value;
+				RaisePropertyChanged(() => AdvertiseStatus);
+			}
 		}
 
 		public DevicePageViewModel() {
+			Devices= new ObservableCollection<DeviceViewModel>();
+			
 			_adapter = DependencyService.Get<IAdapter>();
-			Devices = new ObservableCollection<DeviceViewModel>();
 			var packet = new AdvertisePacket(2, 654321);
 
 			_adapter.AdvertiseStartFailed += AdapterOnAdvertiseStartFailed;
 			_adapter.AdvertiseStartSuccess += AdapterOnAdvertiseStartSuccess;
-			
-			_adapter.StartScanningForDevices(true);
-			//_adapter.StartAdvertising("NSTest", "9900".ToGuid(), packet.ToBytes());
+
 			_adapter.DeviceDiscovered += AdapterOnDeviceDiscovered;
 			_adapter.DeviceConnected += AdapterOnDeviceConnected;
+
+			_adapter.StartScanningForDevices(true);
+			_adapter.StartAdvertising("NSTest", "9900".ToGuid(), packet.ToBytes());
+
 		}
 
 		private void AdapterOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
 			if (Devices.All(x => x.Device != deviceDiscoveredEventArgs.Device)) {
 				Devices.Add(new DeviceViewModel(deviceDiscoveredEventArgs.Device));
 				_adapter.ConnectToDevice(deviceDiscoveredEventArgs.Device);
+				RaisePropertyChanged(() => Devices);
 			}
 		}
 
@@ -47,13 +55,12 @@ namespace BLE.Dev {
 		}
 
 		private void AdapterOnAdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
-			_advertiseStatus = "Advertising";
-			RaisePropertyChanged(() => AdvertiseStatus);
+			AdvertiseStatus = "Advertising";
 		}
 
 		private void AdapterOnAdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
 			throw new Exception("Avertise failed");
-			_advertiseStatus = "Avertise failed";
+			AdvertiseStatus = "Avertise failed";
 		}
 	}
 }
