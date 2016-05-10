@@ -4,6 +4,12 @@ using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.Core
 {
+	[Flags]
+	public enum CharacteristicPermission {
+		Read,
+		Write
+	}
+
 	/// <summary>
 	/// Characteristic interface.
 	/// </summary>
@@ -19,6 +25,8 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <value>The unique identifier.</value>
 		Guid Id { get; }
+
+		CharacteristicPermission Permissions { get; }
 
 		/// <summary>
 		/// Gets the UUID.

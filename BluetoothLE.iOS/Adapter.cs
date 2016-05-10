@@ -212,6 +212,10 @@ namespace BluetoothLE.iOS {
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
+		public void StartAdvertising(string localName, List<IService> services = null) {
+			throw new NotImplementedException();
+		}
+
 		public async void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null){
 
 			_startAdvertise = new Task(() => {

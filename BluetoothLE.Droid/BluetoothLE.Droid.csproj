@@ -46,6 +46,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvertiseCallback.cs" />
+    <Compile Include="Factory\CharacteristicsFactory.cs" />
+    <Compile Include="Factory\ServiceFactory.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Adapter.cs" />

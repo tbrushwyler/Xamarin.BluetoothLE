@@ -102,7 +102,7 @@ namespace BluetoothLE.Core {
 		void DisconnectDevice(IDevice device);
 
 
-		void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null);
+		void StartAdvertising(string localName, List<IService> services = null);
 
 		/// <summary>
 		/// Stop advertising

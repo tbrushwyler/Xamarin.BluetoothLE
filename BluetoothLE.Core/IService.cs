@@ -7,8 +7,7 @@ namespace BluetoothLE.Core
 	/// <summary>
 	/// The service interface.
 	/// </summary>
-	public interface IService
-	{
+	public interface IService {
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>

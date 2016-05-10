@@ -24,7 +24,7 @@ namespace BluetoothLE.Droid {
 		private readonly ScanCallback _scanCallback;
 
 		private BluetoothGatt _gatt;
-		private BluetoothLeScanner _bluetoothLeScanner;
+		
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
 		/// </summary>
@@ -32,8 +32,6 @@ namespace BluetoothLE.Droid {
 			var appContext = Android.App.Application.Context;
 			var manager = (BluetoothManager)appContext.GetSystemService("bluetooth");
 			_adapter = manager.Adapter;
-			_bluetoothLeScanner = _adapter.BluetoothLeScanner;
-
 
 			_callback = new GattCallback();
 			_callback.DeviceConnected += BluetoothGatt_DeviceConnected;
@@ -163,7 +161,7 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		public void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null) {
+		public void StartAdvertising(string localName, List<IService> services = null) {
 			var settings = new AdvertiseSettings.Builder()
 					.SetAdvertiseMode(AdvertiseMode.Balanced)
 					.SetTxPowerLevel(AdvertiseTx.PowerHigh)
@@ -173,14 +171,13 @@ namespace BluetoothLE.Droid {
 
 			_adapter.SetName(localName);
 			
-			var parcelUuid = new ParcelUuid(UUID.FromString(serviceUuid.ToString()));
 			var advertiseDataBuilder = new AdvertiseData.Builder()
-				.SetIncludeDeviceName(true)
-				.AddServiceUuid(parcelUuid);
+				.SetIncludeDeviceName(true);
 
-			if (byteData != null) {
-				advertiseDataBuilder.AddServiceData(parcelUuid, byteData);
-			}
+			foreach (var service in services) {
+				var parcelUuid = new ParcelUuid(UUID.FromString(service.Uuid));
+				advertiseDataBuilder.AddServiceUuid(parcelUuid);
+			}	
 			var advertiseData = advertiseDataBuilder.Build();
 
 			_adapter.BluetoothLeAdvertiser.StartAdvertising(settings, advertiseData, _advertiseCallback);

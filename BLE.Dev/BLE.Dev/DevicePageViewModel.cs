@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using BluetoothLE.Core;
 using BluetoothLE.Core.Events;
+using BluetoothLE.Core.Factory;
 using GalaSoft.MvvmLight;
 using Xamarin.Forms;
 
@@ -36,7 +37,13 @@ namespace BLE.Dev {
 			_adapter.DeviceConnected += AdapterOnDeviceConnected;
 
 			_adapter.StartScanningForDevices(true);
-			_adapter.StartAdvertising("NSTest", "0099".ToGuid(), packet.ToBytes());
+
+			//var serviceFactory = DependencyService.Get<IServiceFactory>();
+			//var service = serviceFactory.CreateService("BEEF".ToGuid());
+			//var charFactory = DependencyService.Get<ICharacteristicsFactory>();
+			//var voltageChar = charFactory.Create("BEF0".ToGuid(), CharacteristicPermission.Read);
+			//service.Characteristics.Add(voltageChar);
+			//_adapter.StartAdvertising("BattByteTest", new List<IService>() {service});
 
 		}
 

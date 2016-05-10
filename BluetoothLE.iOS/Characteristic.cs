@@ -16,6 +16,10 @@ namespace BluetoothLE.iOS
 		private readonly CBPeripheral _peripheral;
 		private readonly CBCharacteristic _nativeCharacteristic;
 
+		public Characteristic(Guid uuid, CharacteristicPermission permission) {
+			//_nativeCharacteristic = new CBMutableCharacteristic(CBUUID.FromString(uuid.ToString()), );
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Characteristic"/> class.
 		/// </summary>
@@ -98,6 +102,8 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		/// <value>The unique identifier.</value>
 		public Guid Id { get { return _id; } }
+
+		public CharacteristicPermission Permissions { get; }
 
 		/// <summary>
 		/// Gets the UUID.

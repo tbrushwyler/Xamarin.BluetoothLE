@@ -5,7 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-
+using Xamarin.Forms;
 namespace BLE.Dev {
 	[StructLayout(LayoutKind.Sequential)]
 	public struct AdvertisePacket {
