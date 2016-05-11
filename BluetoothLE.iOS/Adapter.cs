@@ -48,7 +48,7 @@ namespace BluetoothLE.iOS {
 
 			_current = this;
 
-
+			
 			_peripheralManager = new CBPeripheralManager(this, null);
 		}
 
@@ -213,24 +213,19 @@ namespace BluetoothLE.iOS {
 		}
 
 		public void StartAdvertising(string localName, List<IService> services = null) {
-			throw new NotImplementedException();
-		}
-
-		public async void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null){
-
 			_startAdvertise = new Task(() => {
-				var cbuuid = CBUUID.FromString(serviceUuid.ToString());
 				var cbuuIdArray = new NSMutableArray();
-				cbuuIdArray.Add(cbuuid);
-
-				var service = new CBMutableService(cbuuid, true);
-				_peripheralManager.AddService(service);
+				foreach (Service service in services) {
+					cbuuIdArray.Add(CBUUID.FromString(service.Uuid));
+					_peripheralManager.AddService(service.NativeService);
+				}
+				
 
 				var optionsDict = new NSMutableDictionary();
 				optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
 				optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;
-				if (byteData!= null) {
-//					throw new Exception("iOS Does not support advertisement data in peripheral mode");
+				if (byteData != null) {
+					//					throw new Exception("iOS Does not support advertisement data in peripheral mode");
 				}
 				_peripheralManager.StartAdvertising(optionsDict);
 			});
@@ -240,6 +235,10 @@ namespace BluetoothLE.iOS {
 				await _startAdvertise;
 				_startAdvertise = null;
 			}
+			}
+		}
+
+		public async void StartAdvertising(string localName, Guid serviceUuid, byte[] byteData = null){
 		}
 
 		public void StopAdvertising() {

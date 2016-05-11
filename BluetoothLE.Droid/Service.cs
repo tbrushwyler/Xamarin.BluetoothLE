@@ -15,12 +15,12 @@ namespace BluetoothLE.Droid
 	/// </summary>
 	public class Service : IService
 	{
-		private readonly BluetoothGattService _nativeService;
+		internal readonly BluetoothGattService NativeService;
 		private readonly BluetoothGatt _gatt;
 		private readonly GattCallback _callback;
 		
-		public Service(Guid uuid) {
-			_nativeService = new BluetoothGattService(UUID.FromString(uuid.ToString()), GattServiceType.Primary);
+		public Service(Guid uuid, bool isPrimary) {
+			NativeService = new BluetoothGattService(UUID.FromString(uuid.ToString()), isPrimary ? GattServiceType.Primary : GattServiceType.Secondary);
 			var characteristics = new ObservableCollection<ICharacteristic>();
 			characteristics.CollectionChanged += CharacteristicsOnCollectionChanged;
 			Characteristics = characteristics;
@@ -33,11 +33,11 @@ namespace BluetoothLE.Droid
 		/// <param name="gatt">Native Gatt.</param>
 		/// <param name="callback">Callback.</param>
 		public Service(BluetoothGattService nativeService, BluetoothGatt gatt, GattCallback callback) {
-			_nativeService = nativeService;
+			NativeService = nativeService;
 			_gatt = gatt;
 			_callback = callback;
 
-			_id = ServiceIdFromUuid(_nativeService.Uuid);
+			_id = ServiceIdFromUuid(NativeService.Uuid);
 
 			Characteristics = new ObservableCollection<ICharacteristic>();
 		}
@@ -63,7 +63,7 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		public void DiscoverCharacteristics() {
 			// do nothing
-			foreach (var c in _nativeService.Characteristics) {
+			foreach (var c in NativeService.Characteristics) {
 				var characteristic = new Characteristic(c, _gatt, _callback);
 				Characteristics.Add(characteristic);
 
@@ -86,7 +86,7 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		/// <value>The UUID.</value>
 		public string Uuid {
-			get { return _nativeService.Uuid.ToString(); }
+			get { return NativeService.Uuid.ToString(); }
 		}
 
 		/// <summary>
@@ -95,7 +95,7 @@ namespace BluetoothLE.Droid
 		/// <value>true</value>
 		/// <c>false</c>
 		public bool IsPrimary {
-			get { return _nativeService.Type == GattServiceType.Primary; }
+			get { return NativeService.Type == GattServiceType.Primary; }
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace BluetoothLE.Droid
 			foreach (ICharacteristic newItem in notifyCollectionChangedEventArgs.NewItems) {
 				switch (notifyCollectionChangedEventArgs.Action) {
 					case NotifyCollectionChangedAction.Add:
-						_nativeService.AddCharacteristic((BluetoothGattCharacteristic) newItem.NativeCharacteristic);
+						NativeService.AddCharacteristic((BluetoothGattCharacteristic) newItem.NativeCharacteristic);
 						break;
 					case NotifyCollectionChangedAction.Remove:
 						// remove characteristic

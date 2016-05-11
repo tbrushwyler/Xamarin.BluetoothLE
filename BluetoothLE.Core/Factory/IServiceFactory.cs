@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace BluetoothLE.Core.Factory {
 	public interface IServiceFactory {
-		IService CreateService(Guid uuid);
+		IService CreateService(Guid uuid, bool isPrimary);
 	}
 }

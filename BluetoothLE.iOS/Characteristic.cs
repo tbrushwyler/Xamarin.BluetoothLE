@@ -103,8 +103,6 @@ namespace BluetoothLE.iOS
 		/// <value>The unique identifier.</value>
 		public Guid Id { get { return _id; } }
 
-		public CharacteristicPermission Permissions { get; }
-
 		/// <summary>
 		/// Gets the UUID.
 		/// </summary>
@@ -142,7 +140,21 @@ namespace BluetoothLE.iOS
 		/// Gets the characteristic's properties
 		/// </summary>
 		/// <value>The characteristic's properties.</value>
-		public CharacteristicPropertyType Properties { get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; } }
+		public CharacteristicPropertyType Properties {
+			get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; }
+			set {
+				
+			}
+		}
+
+		public CharacterisiticPermissionType Permissions {
+			get {
+				
+			}
+			set {
+				
+			}
+		}
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can read.

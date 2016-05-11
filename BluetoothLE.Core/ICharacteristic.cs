@@ -4,12 +4,6 @@ using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.Core
 {
-	[Flags]
-	public enum CharacteristicPermission {
-		Read,
-		Write
-	}
-
 	/// <summary>
 	/// Characteristic interface.
 	/// </summary>
@@ -26,8 +20,6 @@ namespace BluetoothLE.Core
 		/// <value>The unique identifier.</value>
 		Guid Id { get; }
 
-		CharacteristicPermission Permissions { get; }
-
 		/// <summary>
 		/// Gets the UUID.
 		/// </summary>
@@ -38,7 +30,7 @@ namespace BluetoothLE.Core
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
-		byte[] Value { get; }
+		byte[] Value { get; set; }
 
 		/// <summary>
 		/// Gets the characteristic's value as a string.
@@ -57,6 +49,11 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <value>The characteristic's properties.</value>
 		CharacteristicPropertyType Properties { get; }
+
+		/// <summary>
+		/// Gets the characteristic's permissions
+		/// </summary>
+		CharacterisiticPermissionType Permissions { get; }
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can read.

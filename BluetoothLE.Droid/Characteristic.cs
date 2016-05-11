@@ -16,28 +16,10 @@ namespace BluetoothLE.Droid
 		private readonly BluetoothGatt _gatt;
 		private readonly GattCallback _callback;
 
-		public Characteristic(Guid uuid, CharacteristicPermission permissions) {
-			Permissions = permissions;
-			GattProperty gattProperties = 0;
-			GattPermission gattPermissions = 0;
-			foreach (CharacteristicPermission characteristicPermission in Enum.GetValues(typeof(CharacteristicPermission))) {
-				if (permissions == characteristicPermission) {
-					switch (characteristicPermission) {
-						case CharacteristicPermission.Read:
-							gattProperties &= GattProperty.Read;
-							gattPermissions &= GattPermission.Read;
-							break;
-						case CharacteristicPermission.Write:
-							gattProperties &= GattProperty.Write;
-							gattPermissions &= GattPermission.Write;
-							break;
-						default:
-							throw new ArgumentOutOfRangeException();
-					}
-				}
-				
-			}
-			_nativeCharacteristic = new BluetoothGattCharacteristic(UUID.FromString(uuid.ToString()), gattProperties, gattPermissions);
+		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
+			GattPermission gattPermissions = GetNativePermissions(permissions);
+			
+			_nativeCharacteristic = new BluetoothGattCharacteristic(UUID.FromString(uuid.ToString()), (GattProperty)properties, gattPermissions);
 		}
 
 		/// <summary>
@@ -113,8 +95,6 @@ namespace BluetoothLE.Droid
 			get { return Guid.Parse(_nativeCharacteristic.Uuid.ToString()); }
 		}
 
-		public CharacteristicPermission Permissions { get; set; }
-
 		/// <summary>
 		/// Gets the UUID.
 		/// </summary>
@@ -129,6 +109,7 @@ namespace BluetoothLE.Droid
 		/// <value>The characteristic's value.</value>
 		public byte[] Value {
 			get { return _nativeCharacteristic.GetValue(); }
+			set { _nativeCharacteristic.SetValue(value); }
 		}
 
 		/// <summary>
@@ -159,6 +140,12 @@ namespace BluetoothLE.Droid
 		/// <value>The characteristic's properties.</value>
 		public CharacteristicPropertyType Properties {
 			get { return (CharacteristicPropertyType) (int) _nativeCharacteristic.Properties; }
+		}
+
+		public CharacterisiticPermissionType Permissions {
+			get {
+				return GetPermissions(_nativeCharacteristic.Permissions);
+			}
 		}
 
 		/// <summary>
@@ -214,6 +201,74 @@ namespace BluetoothLE.Droid
 				if (descriptor != null && !descriptor.SetValue(value.ToArray()))
 					throw new Exception("Unable to set the notification value on the descriptor");
 			}
+		}
+
+		/// <summary>
+		/// Convert abstracted permissions to android native permissions
+		/// </summary>
+		/// <param name="permissions"></param>
+		/// <returns></returns>
+		GattPermission GetNativePermissions(CharacterisiticPermissionType permissions) {
+			GattPermission nativePermissions = 0;
+			foreach (CharacterisiticPermissionType value in Enum.GetValues(typeof(CharacterisiticPermissionType))) {
+				if (permissions.HasFlag(value)) {
+					switch (value) {
+						case CharacterisiticPermissionType.Read:
+							nativePermissions |= GattPermission.Read;
+							break;
+						case CharacterisiticPermissionType.Write:
+							nativePermissions |= GattPermission.Write;
+							break;
+						case CharacterisiticPermissionType.ReadEncrypted:
+							nativePermissions |= GattPermission.ReadEncrypted;
+							break;
+						case CharacterisiticPermissionType.WriteEncrypted:
+							nativePermissions |= GattPermission.WriteEncrypted;
+							break;
+					}
+				}
+			}
+			return nativePermissions;
+		}
+
+		/// <summary>
+		/// Convert native permissions to abstracted permissions
+		/// </summary>
+		/// <param name="permission"></param>
+		/// <returns></returns>
+		CharacterisiticPermissionType GetPermissions(GattPermission permission) {
+			CharacterisiticPermissionType t = 0;
+			foreach (GattPermission value in Enum.GetValues(typeof(GattPermission))) {
+				switch (value) {
+					case GattPermission.Read:
+						t |= CharacterisiticPermissionType.Read;
+						break;
+					case GattPermission.ReadEncrypted:
+						t |= CharacterisiticPermissionType.ReadEncrypted;
+						break;
+					case GattPermission.ReadEncryptedMitm:
+						t |= CharacterisiticPermissionType.ReadEncryptedMitm;
+						break;
+					case GattPermission.Write:
+						t |= CharacterisiticPermissionType.Write;
+						break;
+					case GattPermission.WriteEncrypted:
+						t |= CharacterisiticPermissionType.WriteEncrypted;
+						break;
+					case GattPermission.WriteEncryptedMitm:
+						t |= CharacterisiticPermissionType.WriteEncryptedMitm;
+						break;
+					case GattPermission.WriteSigned:
+						t |= CharacterisiticPermissionType.WriteSigned;
+						break;
+					case GattPermission.WriteSignedMitm:
+						t |= CharacterisiticPermissionType.WriteSignedMitm;
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+			}
+			return t;
 		}
 	}
 }

@@ -28,8 +28,7 @@ namespace BLE.Dev {
 			Devices= new ObservableCollection<DeviceViewModel>();
 			
 			_adapter = DependencyService.Get<IAdapter>();
-			var packet = new AdvertisePacket(2, 654321);
-
+			
 			_adapter.AdvertiseStartFailed += AdapterOnAdvertiseStartFailed;
 			_adapter.AdvertiseStartSuccess += AdapterOnAdvertiseStartSuccess;
 
@@ -38,12 +37,13 @@ namespace BLE.Dev {
 
 			_adapter.StartScanningForDevices(true);
 
-			//var serviceFactory = DependencyService.Get<IServiceFactory>();
-			//var service = serviceFactory.CreateService("BEEF".ToGuid());
-			//var charFactory = DependencyService.Get<ICharacteristicsFactory>();
-			//var voltageChar = charFactory.Create("BEF0".ToGuid(), CharacteristicPermission.Read);
-			//service.Characteristics.Add(voltageChar);
-			//_adapter.StartAdvertising("BattByteTest", new List<IService>() {service});
+			var serviceFactory = DependencyService.Get<IServiceFactory>();
+			var service = serviceFactory.CreateService("BEEF".ToGuid(), true);
+			var charFactory = DependencyService.Get<ICharacteristicsFactory>();
+			var voltageChar = charFactory.Create("BEF0".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read);
+			voltageChar.Value = new byte[] {0xB0, 0x0B};
+			service.Characteristics.Add(voltageChar);
+			_adapter.StartAdvertising("BattByteTest", new List<IService>() { service });
 
 		}
 

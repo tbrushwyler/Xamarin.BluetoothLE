@@ -19,6 +19,8 @@ namespace BluetoothLE.Droid {
 	/// </summary>
 	public class Adapter : Java.Lang.Object, IAdapter {
 		private readonly BluetoothAdapter _adapter;
+		private readonly BluetoothGattServer _gattServer;
+
 		private readonly GattCallback _callback;
 		private readonly AdvertiseCallback _advertiseCallback;
 		private readonly ScanCallback _scanCallback;
@@ -44,6 +46,10 @@ namespace BluetoothLE.Droid {
 			ConnectedDevices = new List<IDevice>();
 			_scanCallback = new ScanCallback();
 			_scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
+
+			var callback = new GattServerCallback();
+			_gattServer = manager.OpenGattServer(appContext, callback);
+			callback.Server = _gattServer;
 		}
 
 		#region IAdapter implementation
@@ -174,13 +180,16 @@ namespace BluetoothLE.Droid {
 			var advertiseDataBuilder = new AdvertiseData.Builder()
 				.SetIncludeDeviceName(true);
 
-			foreach (var service in services) {
+			foreach (Service service in services) {
 				var parcelUuid = new ParcelUuid(UUID.FromString(service.Uuid));
 				advertiseDataBuilder.AddServiceUuid(parcelUuid);
+
+				_gattServer.AddService(service.NativeService);
 			}	
 			var advertiseData = advertiseDataBuilder.Build();
 
 			_adapter.BluetoothLeAdvertiser.StartAdvertising(settings, advertiseData, _advertiseCallback);
+			
 		}
 
 		/// <summary>
@@ -277,6 +286,15 @@ namespace BluetoothLE.Droid {
 
 		private void BluetoothGatt_AdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
 			AdvertiseStartFailed?.Invoke(this, advertiseStartEventArgs);
+		}
+	}
+
+	public class GattServerCallback : BluetoothGattServerCallback {
+		public BluetoothGattServer Server { get; set; }
+
+		public override void OnCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
+			var value = characteristic.GetValue();
+			Server.SendResponse(device, requestId, GattStatus.Success, offset, value);
 		}
 	}
 }
