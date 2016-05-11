@@ -16,8 +16,10 @@ namespace BluetoothLE.iOS
 		private readonly CBPeripheral _peripheral;
 		private readonly CBCharacteristic _nativeCharacteristic;
 
-		public Characteristic(Guid uuid, CharacteristicPermission permission) {
-			//_nativeCharacteristic = new CBMutableCharacteristic(CBUUID.FromString(uuid.ToString()), );
+		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
+			CBAttributePermissions nativePermissions = 0;
+			nativePermissions = GetNativePermissions(permissions);
+			_nativeCharacteristic = new CBMutableCharacteristic(CBUUID.FromString(uuid.ToString()), (CBCharacteristicProperties) properties, null, nativePermissions);
 		}
 
 		/// <summary>
@@ -41,6 +43,7 @@ namespace BluetoothLE.iOS
 		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
 
 		private bool _isUpdating;
+
 		/// <summary>
 		/// Subscribe to the characteristic
 		/// </summary>
@@ -97,6 +100,7 @@ namespace BluetoothLE.iOS
 		}
 
 		private Guid _id;
+
 		/// <summary>
 		/// Gets the unique identifier.
 		/// </summary>
@@ -113,7 +117,12 @@ namespace BluetoothLE.iOS
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
-		public byte[] Value { get { return _nativeCharacteristic.Value.ToArray(); } }
+		public byte[] Value {
+			get { return _nativeCharacteristic.Value.ToArray(); }
+			set {
+				_nativeCharacteristic.Value = NSData.FromArray(value);
+			}
+		}
 
 		/// <summary>
 		/// Gets the characteristic's value as a string.
@@ -148,12 +157,8 @@ namespace BluetoothLE.iOS
 		}
 
 		public CharacterisiticPermissionType Permissions {
-			get {
-				
-			}
-			set {
-				
-			}
+			//TODO: Figure out how to get these
+			get { return 0; }
 		}
 
 		/// <summary>
@@ -206,6 +211,29 @@ namespace BluetoothLE.iOS
 		}
 
 		#endregion
+
+		private CBAttributePermissions GetNativePermissions(CharacterisiticPermissionType permissions) {
+			CBAttributePermissions nativePermissions = 0;
+			foreach (CharacterisiticPermissionType value in Enum.GetValues(typeof(CharacterisiticPermissionType))) {
+				if (permissions.HasFlag(value)) {
+					switch (value) {
+						case CharacterisiticPermissionType.Read:
+							nativePermissions |= CBAttributePermissions.Readable;
+							break;
+						case CharacterisiticPermissionType.Write:
+							nativePermissions |= CBAttributePermissions.Writeable;
+							break;
+						case CharacterisiticPermissionType.ReadEncrypted:
+							nativePermissions |= CBAttributePermissions.ReadEncryptionRequired;
+							break;
+						case CharacterisiticPermissionType.WriteEncrypted:
+							nativePermissions |= CBAttributePermissions.WriteEncryptionRequired;
+							break;
+					}
+				}
+			}
+			return nativePermissions;
+		}
 	}
 }
 
