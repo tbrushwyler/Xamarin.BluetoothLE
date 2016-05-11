@@ -133,8 +133,14 @@ namespace BluetoothLE.iOS
 			foreach (ICharacteristic newItem in notifyCollectionChangedEventArgs.NewItems) {
 				switch (notifyCollectionChangedEventArgs.Action) {
 					case NotifyCollectionChangedAction.Add:
-						var nativeService = (CBMutableService) NativeService;
-						var characteristics = new NSMutableArray<CBCharacteristic>(NativeService.Characteristics);
+						var nativeService = (CBMutableService)NativeService;
+						NSMutableArray<CBCharacteristic> characteristics;
+						if (NativeService.Characteristics == null){
+							characteristics = new NSMutableArray<CBCharacteristic>();
+						} else {
+							characteristics = new NSMutableArray<CBCharacteristic>(NativeService.Characteristics);
+						}
+						 
 						characteristics.Add((CBCharacteristic) newItem.NativeCharacteristic);
 						nativeService.Characteristics = characteristics.ToArray();
 						break;

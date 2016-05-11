@@ -43,6 +43,11 @@ namespace BLE.Dev {
 			var voltageChar = charFactory.Create("BEF0".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read);
 			voltageChar.Value = new byte[] {0xB0, 0x0B};
 			service.Characteristics.Add(voltageChar);
+
+			var tempChar = charFactory.Create("BEF1".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read);
+			tempChar.Value = new byte[] {0xB0, 0x0B};
+			service.Characteristics.Add(tempChar);
+
 			_adapter.StartAdvertising("BattByteTest", new List<IService>() { service });
 
 		}

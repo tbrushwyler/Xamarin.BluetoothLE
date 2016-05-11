@@ -5,7 +5,8 @@ using System.Collections.Generic;
 using System.Text;
 using Foundation;
 using BluetoothLE.Core.Events;
-
+using BluetoothLE.Core;
+	
 namespace BluetoothLE.iOS
 {
 	/// <summary>

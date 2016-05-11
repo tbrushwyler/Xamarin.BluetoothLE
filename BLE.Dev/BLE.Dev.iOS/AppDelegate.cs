@@ -7,6 +7,8 @@ using UIKit;
 using Xamarin.Forms;
 using BluetoothLE.Core;
 using BluetoothLE.iOS;
+using BluetoothLE.Core.Factory;
+using BluetoothLE.iOS.Factory;
 
 namespace BLE.Dev.iOS {
 	// The UIApplicationDelegate for the application. This class is responsible for launching the 
@@ -24,6 +26,8 @@ namespace BLE.Dev.iOS {
 		public override bool FinishedLaunching(UIApplication app, NSDictionary options) {
 			global::Xamarin.Forms.Forms.Init();
 			DependencyService.Register<IAdapter, Adapter>();
+			DependencyService.Register<IServiceFactory, ServiceFactory>();
+			DependencyService.Register<ICharacteristicsFactory, CharacteristicsFactory>();
 			LoadApplication(new App());
 
 			return base.FinishedLaunching(app, options);
