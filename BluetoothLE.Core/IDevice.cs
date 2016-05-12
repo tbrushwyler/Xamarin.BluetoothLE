@@ -38,6 +38,11 @@ namespace BluetoothLE.Core
 		Dictionary<Guid, byte[]> AdvertismentData { get; }
 
 		/// <summary>
+		/// Service UUIDs included in the advertisment data
+		/// </summary>
+		List<Guid> AdvertisedServiceUuids { get; }
+
+		/// <summary>
 		/// Gets the native device object reference. Should be cast to the appropriate type.
 		/// </summary>
 		/// <value>The native device</value>

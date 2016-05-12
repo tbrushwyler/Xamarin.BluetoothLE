@@ -172,7 +172,7 @@ namespace BluetoothLE.Droid
 		/// <value>true</value>
 		/// <c>false</c>
 		public bool CanWrite {
-			get { return (Properties & (CharacteristicPropertyType.WriteWithoutResponse | CharacteristicPropertyType.AppleWriteWithoutResponse)) > 0; }
+			get { return (Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0; }
 		}
 
 		#endregion

@@ -39,18 +39,33 @@ namespace BLE.Dev {
 
 			var serviceFactory = DependencyService.Get<IServiceFactory>();
 			var service = serviceFactory.CreateService("BEEF".ToGuid(), true);
-			var charFactory = DependencyService.Get<ICharacteristicsFactory>();
-			var voltageChar = charFactory.Create("BEF0".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read);
-			voltageChar.Value = new byte[] {0xB0, 0x0B};
-			service.Characteristics.Add(voltageChar);
-
-			var tempChar = charFactory.Create("BEF1".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read);
-			tempChar.Value = new byte[] {0xB0, 0x0B};
-			service.Characteristics.Add(tempChar);
+			
+			// Voltage
+			AddCharacteristic(ref service, "BEF0".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] {0x12, 0x34});
+			// Temperature
+			AddCharacteristic(ref service, "BEF1".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34 });
+			// ELT
+			AddCharacteristic(ref service, "BEF2".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34, 0x56, 0x78 });
+			// Voltage/Temperature Zone Accumulator 
+			AddCharacteristic(ref service, "BEF3".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34 });
+			// Time
+			AddCharacteristic(ref service, "BEF5".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34, 0x56, 0x78 });
+			// Configuration
+			AddCharacteristic(ref service, "BEF6".ToGuid(), CharacterisiticPermissionType.Write, CharacteristicPropertyType.Write, null);
+			// Event
+			AddCharacteristic(ref service, "BEF7".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34 });
+			// Mode
+			AddCharacteristic(ref service, "BEF8".ToGuid(), CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34 });
 
 			_adapter.StartAdvertising("BattByteTest", new List<IService>() { service });
 
 		}
+
+		private void AddCharacteristic(ref IService service, Guid guid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties, byte[] value) {
+			var charFactory = DependencyService.Get<ICharacteristicsFactory>();
+			var characteristic = charFactory.Create(guid, permissions, properties);
+			characteristic.Value = value;
+			service.Characteristics.Add(characteristic);		}
 
 		private void AdapterOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
 			if (Devices.All(x => x.Device != deviceDiscoveredEventArgs.Device)) {

@@ -48,7 +48,7 @@ namespace BluetoothLE.iOS {
 
 			_current = this;
 
-			
+
 			_peripheralManager = new CBPeripheralManager(this, null);
 		}
 
@@ -114,7 +114,7 @@ namespace BluetoothLE.iOS {
 		/// Occurs when advertising start succeeds
 		/// </summary>
 		public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess = delegate { };
-		
+
 		/// <summary>
 		/// Occurs when scan timeout elapsed.
 		/// </summary>
@@ -212,19 +212,19 @@ namespace BluetoothLE.iOS {
 			_central.CancelPeripheralConnection(peripheral);
 		}
 
-		public async void StartAdvertising(string localName, List<IService> services = null) {
+		public async void StartAdvertising(string localName, List<IService> services) {
 			_startAdvertise = new Task(() => {
 				var cbuuIdArray = new NSMutableArray();
 				foreach (Service service in services) {
 					cbuuIdArray.Add(CBUUID.FromString(service.Uuid));
-					_peripheralManager.AddService((CBMutableService) service.NativeService);
+					_peripheralManager.AddService((CBMutableService)service.NativeService);
 				}
-				
+
 
 				var optionsDict = new NSMutableDictionary();
 				optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
 				optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;
-				
+
 				_peripheralManager.StartAdvertising(optionsDict);
 			});
 
@@ -275,6 +275,7 @@ namespace BluetoothLE.iOS {
 				var device = new Device(e.Peripheral, e.RSSI);
 				DiscoveredDevices.Add(device);
 				device.AdvertismentData = ProcessData(e.AdvertisementData);
+				device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			} else {
 				var device = (Device)addedDevice;
@@ -284,22 +285,50 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
-		private Dictionary<Guid, byte[]> ProcessData(NSDictionary advertisementData) {
-			Dictionary<Guid, byte[]> resultData = new Dictionary<Guid, byte[]>();
-			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceUUIDsKey)){
-			}
-			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)){
-				var dataDictionary = advertisementData[CBAdvertisement.DataServiceDataKey] as NSDictionary;
-				foreach(var dataPair in dataDictionary){
-					var uuid = dataPair.Key as CBUUID;
-					var data = dataPair.Value as NSData;
-
-					var guid = uuid.ToString().ToGuid();
-					byte[] dataBytes = new byte[data.Length];
-					System.Runtime.InteropServices.Marshal.Copy(data.Bytes, dataBytes, 0, Convert.ToInt32(data.Length));
-
-					resultData[guid] = dataBytes;
+		private static List<Guid> ProcessUuids(NSDictionary advertisementData) {
+			List<Guid> guids = new List<Guid>();
+			if (advertisementData.ContainsKey(CBAdvertisement.DataServiceUUIDsKey)) {
+				var cbUuids = advertisementData[CBAdvertisement.DataServiceUUIDsKey] as NSArray;
+				if (cbUuids == null) {
+					return guids;
 				}
+
+				for (nuint i = 0; i < cbUuids.Count; ++i) {
+					var cbUuid = cbUuids.GetItem<CBUUID>(i);
+					if (cbUuid == null) {
+						continue;
+					}
+
+				}
+			}
+			return guids;
+		}
+
+		private static Dictionary<Guid, byte[]> ProcessData(NSDictionary advertisementData) {
+			var resultData = new Dictionary<Guid, byte[]>();
+
+			if (!advertisementData.ContainsKey(CBAdvertisement.DataServiceDataKey)) {
+				return resultData;
+			}
+
+			var dataDictionary = advertisementData[CBAdvertisement.DataServiceDataKey] as NSDictionary;
+			if (dataDictionary == null) {
+				return resultData;
+			}
+
+			foreach (var dataPair in dataDictionary) {
+				var uuid = dataPair.Key as CBUUID;
+				var data = dataPair.Value as NSData;
+
+				if (uuid == null || data == null) {
+					continue;
+				}
+
+				var guid = uuid.ToString().ToGuid();
+				var dataBytes = new byte[data.Length];
+				System.Runtime.InteropServices.Marshal.Copy(data.Bytes, dataBytes, 0, Convert.ToInt32(data.Length));
+
+				resultData[guid] = dataBytes;
 			}
 			return resultData;
 		}

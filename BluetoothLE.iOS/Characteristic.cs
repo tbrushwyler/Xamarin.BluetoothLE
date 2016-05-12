@@ -93,7 +93,7 @@ namespace BluetoothLE.iOS
 				throw new InvalidOperationException("Characteristic does not support WRITE");
 
 			var nsData = NSData.FromArray(data);
-			var writeType = ((Properties & CharacteristicPropertyType.AppleWriteWithoutResponse) > 0) ?
+			var writeType = ((Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0) ?
 				CBCharacteristicWriteType.WithoutResponse :
 				CBCharacteristicWriteType.WithResponse;
 
@@ -181,7 +181,7 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		/// <value>true</value>
 		/// <c>false</c>
-		public bool CanWrite { get { return (Properties & (CharacteristicPropertyType.WriteWithoutResponse | CharacteristicPropertyType.AppleWriteWithoutResponse)) > 0; } }
+		public bool CanWrite { get { return (Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0; } }
 
 		#endregion
 

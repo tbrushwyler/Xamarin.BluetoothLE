@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Android.Bluetooth;
 using System.Linq;
+using System.Runtime.Remoting.Channels;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using Java.Util;
@@ -167,7 +168,7 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		public void StartAdvertising(string localName, List<IService> services = null) {
+		public void StartAdvertising(string localName, List<IService> services) {
 			var settings = new AdvertiseSettings.Builder()
 					.SetAdvertiseMode(AdvertiseMode.Balanced)
 					.SetTxPowerLevel(AdvertiseTx.PowerHigh)
@@ -295,6 +296,13 @@ namespace BluetoothLE.Droid {
 		public override void OnCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
 			var value = characteristic.GetValue();
 			Server.SendResponse(device, requestId, GattStatus.Success, offset, value);
+		}
+
+		public override void OnCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, bool preparedWrite, bool responseNeeded, int offset, byte[] value) {
+			characteristic.SetValue(value);
+			if (responseNeeded) {
+				Server.SendResponse(device, requestId, GattStatus.Success, offset, value);
+			}
 		}
 	}
 }

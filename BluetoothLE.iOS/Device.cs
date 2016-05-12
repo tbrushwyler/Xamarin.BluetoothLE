@@ -114,6 +114,8 @@ namespace BluetoothLE.iOS
 		public int Rssi { get { return _rssi; } }
 
 		public Dictionary<Guid, byte[]> AdvertismentData { get; internal set; }
+
+		public List<Guid> AdvertisedServiceUuids { get; internal set; }
 		//public int Rssi { get { return _peripheral.RSSI == null ? 0 : _peripheral.RSSI.Int32Value; } }
 
 		/// <summary>

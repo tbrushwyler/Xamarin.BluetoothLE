@@ -135,6 +135,8 @@ namespace BluetoothLE.Droid {
 			internal set { _advertismentData = value; }
 		}
 
+		public List<Guid> AdvertisedServiceUuids { get; internal set; }
+
 		/// <summary>
 		///     Gets the native device object reference. Should be cast to the appropriate type.
 		/// </summary>
