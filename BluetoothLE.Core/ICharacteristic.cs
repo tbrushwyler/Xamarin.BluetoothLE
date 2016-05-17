@@ -12,7 +12,7 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
+		event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
 		/// <summary>
 		/// Gets the unique identifier.

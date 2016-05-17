@@ -41,7 +41,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
+		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
 		private bool _isUpdating;
 
@@ -189,7 +189,7 @@ namespace BluetoothLE.iOS
 
 		private void UpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e)
 		{
-			ValueUpdated(this, new CharacteristicReadEventArgs(this));
+			ValueUpdated(this, new CharacteristicUpdateEventArgs(this));
 		}
 
 		#endregion

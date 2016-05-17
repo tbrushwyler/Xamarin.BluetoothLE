@@ -5,6 +5,7 @@ using Java.Util;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using Android.OS;
 using BluetoothLE.Core.Events;
 
@@ -13,7 +14,7 @@ namespace BluetoothLE.Droid
 	/// <summary>
 	/// Concrete implmentation of <see cref="BluetoothLE.Core.IService" /> interface
 	/// </summary>
-	public class Service : IService
+	public class Service : IService, IDisposable
 	{
 		internal readonly BluetoothGattService NativeService;
 		private readonly BluetoothGatt _gatt;
@@ -62,11 +63,11 @@ namespace BluetoothLE.Droid
 		/// Discovers the characteristics for the services.
 		/// </summary>
 		public void DiscoverCharacteristics() {
+			Characteristics.Clear();
 			// do nothing
 			foreach (var c in NativeService.Characteristics) {
 				var characteristic = new Characteristic(c, _gatt, _callback);
 				Characteristics.Add(characteristic);
-
 				CharacteristicDiscovered(this, new CharacteristicDiscoveredEventArgs(characteristic));
 			}
 		}
@@ -126,6 +127,10 @@ namespace BluetoothLE.Droid
 						break;
 				}
 			}
+		}
+
+		public void Dispose() {
+			_gatt.Close();
 		}
 	}
 }
