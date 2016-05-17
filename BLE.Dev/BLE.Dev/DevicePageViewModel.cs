@@ -64,7 +64,9 @@ namespace BLE.Dev {
 		private void AddCharacteristic(ref IService service, Guid guid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties, byte[] value) {
 			var charFactory = DependencyService.Get<ICharacteristicsFactory>();
 			var characteristic = charFactory.Create(guid, permissions, properties);
-			characteristic.Value = value;
+			if (value != null){
+				characteristic.Value = value;
+			}
 			service.Characteristics.Add(characteristic);		}
 
 		private void AdapterOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
