@@ -108,6 +108,12 @@ namespace BluetoothLE.Core {
 		/// Stop advertising
 		/// </summary>
 		void StopAdvertising();
+
+		/// <summary>
+		/// Checks if the device supports advertising and peripheral mode, iOS versions above 6.0 and Android devices that pass tests
+		/// </summary>
+		/// <returns></returns>
+		bool SupportsAdvertising();
 	}
 }
 

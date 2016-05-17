@@ -10,6 +10,7 @@ using System.Text;
 using Java.Util;
 using System.Threading.Tasks;
 using Android.Bluetooth.LE;
+using Android.Content;
 using Java.Nio;
 using Android.OS;
 using BluetoothLE.Core.Events;
@@ -33,20 +34,20 @@ namespace BluetoothLE.Droid {
 		/// </summary>
 		public Adapter() {
 			var appContext = Android.App.Application.Context;
-			var manager = (BluetoothManager)appContext.GetSystemService("bluetooth");
+			var manager = (BluetoothManager)appContext.GetSystemService(Context.BluetoothService);
 			_adapter = manager.Adapter;
 
 			_callback = new GattCallback();
 			_callback.DeviceConnected += BluetoothGatt_DeviceConnected;
 			_callback.DeviceDisconnected += BluetoothGatt_DeviceDisconnected;
 
-			_advertiseCallback = new AdvertiseCallback();
-			_advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
-			_advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
-
 			ConnectedDevices = new List<IDevice>();
 			_scanCallback = new ScanCallback();
 			_scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
+
+			_advertiseCallback = new AdvertiseCallback();
+			_advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
+			_advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
 
 			var callback = new GattServerCallback();
 			_gattServer = manager.OpenGattServer(appContext, callback);
@@ -112,6 +113,7 @@ namespace BluetoothLE.Droid {
 			}
 
 			//TODO: Power options, whitelist UUIDS
+			
 			_adapter.BluetoothLeScanner.StartScan(_scanCallback);
 
 			//_adapter.StartLeScan(uuids.ToArray(), this);
@@ -184,7 +186,9 @@ namespace BluetoothLE.Droid {
 			foreach (Service service in services) {
 				var parcelUuid = new ParcelUuid(UUID.FromString(service.Uuid));
 				advertiseDataBuilder.AddServiceUuid(parcelUuid);
-
+				if (_gattServer == null) {
+					continue;
+				}
 				_gattServer.AddService(service.NativeService);
 			}	
 			var advertiseData = advertiseDataBuilder.Build();
@@ -198,6 +202,29 @@ namespace BluetoothLE.Droid {
 		/// </summary>
 		public void StopAdvertising() {
 			_adapter.BluetoothLeAdvertiser.StopAdvertising(_advertiseCallback);
+		}
+
+		public bool SupportsAdvertising() {
+			var multi = _adapter.IsMultipleAdvertisementSupported;
+			
+			var batching =  _adapter.IsOffloadedScanBatchingSupported;
+			var filtering = _adapter.IsOffloadedFilteringSupported;
+
+			String missingFeatures = "";
+			if (!multi) {
+				missingFeatures += $"MultipleAdvertisment";
+			}
+			if (!batching) {
+				missingFeatures += $" OffloadedScanBatching";
+			}
+			if (!filtering) {
+				missingFeatures += $" OffloadedFiltering";
+			}
+			var support = multi && batching && filtering;
+			if (!support) {
+				throw new Exception($"Missing features: {missingFeatures}");
+			}
+			return support;
 		}
 
 		/// <summary>
@@ -241,11 +268,16 @@ namespace BluetoothLE.Droid {
 		}
 
 		private void BluetoothGatt_DeviceDisconnected(object sender, DeviceConnectionEventArgs e) {
-			var connDevice = ConnectedDevices.FirstOrDefault(x => x.Id == e.Device.Id);
-			if (connDevice != null)
-				ConnectedDevices.Remove(connDevice);
-
+			var id = e.Device.Id;
+			DisconnectDevice(id);
 			DeviceDisconnected(this, e);
+		}
+
+		private void DisconnectDevice(Guid id) {
+			var connDevice = ConnectedDevices.FirstOrDefault(x => x.Id == id);
+			if (connDevice != null) {
+				ConnectedDevices.Remove(connDevice);
+			}
 		}
 
 		#endregion
@@ -267,7 +299,7 @@ namespace BluetoothLE.Droid {
 			try {
 				_gatt.Close(); // this will not trigger the OnConnectionStateChange.OnConnectionStateChange callback
 				_gatt = null;
-
+				DisconnectDevice(device.Id);
 				DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
 			} catch (Exception e) {
 				System.Diagnostics.Debug.WriteLine(e.Message);

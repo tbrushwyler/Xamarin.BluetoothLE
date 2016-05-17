@@ -3,6 +3,7 @@ using BluetoothLE.Core;
 using Android.Bluetooth;
 using System.Linq;
 using BluetoothLE.Core.Events;
+using BluetoothLE.Core.Exceptions;
 using Java.Util;
 
 namespace BluetoothLE.Droid
@@ -43,7 +44,7 @@ namespace BluetoothLE.Droid
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated = delegate { };
+		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated = delegate { };
 
 		/// <summary>
 		/// Subscribe to the characteristic
@@ -69,7 +70,6 @@ namespace BluetoothLE.Droid
 		public void Read() {
 			if (!CanRead)
 				throw new InvalidOperationException("Characteristic does not support READ");
-
 			_gatt.ReadCharacteristic(_nativeCharacteristic);
 		}
 
@@ -78,13 +78,22 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		/// <param name="data">Data.</param>
 		public void Write(byte[] data) {
-			if (!CanWrite)
+			if (!CanWrite) 
 				throw new InvalidOperationException("Characteristic does not support WRITE");
 
 			_nativeCharacteristic.SetValue(data);
-			_nativeCharacteristic.WriteType = GattWriteType.NoResponse;
 
-			_gatt.WriteCharacteristic(_nativeCharacteristic);
+			if (Properties.HasFlag(CharacteristicPropertyType.Write)) {
+				_nativeCharacteristic.WriteType = GattWriteType.Default;
+			} else if (Properties.HasFlag(CharacteristicPropertyType.WriteWithoutResponse)){
+				_nativeCharacteristic.WriteType = GattWriteType.NoResponse;
+			}
+
+			var success =  _gatt.WriteCharacteristic(_nativeCharacteristic);
+		
+			if (!success) {
+				throw new CharacteristicException("Write failed", CharacteristicException.Code.WriteFailed);
+			}
 		}
 
 		/// <summary>
@@ -172,14 +181,14 @@ namespace BluetoothLE.Droid
 		/// <value>true</value>
 		/// <c>false</c>
 		public bool CanWrite {
-			get { return (Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0; }
+			get { return Properties.HasFlag(CharacteristicPropertyType.WriteWithoutResponse) || Properties.HasFlag(CharacteristicPropertyType.Write); }
 		}
 
 		#endregion
 
 		#region GattCallback delegate methods
 
-		private void CharacteristicValueUpdated(object sender, CharacteristicReadEventArgs e) {
+		private void  CharacteristicValueUpdated(object sender, CharacteristicUpdateEventArgs e) {
 			if (e.Characteristic.Id == this.Id) {
 				ValueUpdated(this, e);
 			}

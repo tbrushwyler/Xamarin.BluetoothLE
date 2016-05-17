@@ -23,6 +23,7 @@ namespace BluetoothLE.Droid {
 		public override void OnScanResult(ScanCallbackType callbackType, ScanResult result) {
 			base.OnScanResult(callbackType, result);
 			var device=  new Device(result.Device, null, null, result.Rssi);
+
 			if (result.ScanRecord != null) {
 				device.AdvertismentData = ProcessData(result.ScanRecord);
 				if (result.ScanRecord.ServiceUuids != null) {

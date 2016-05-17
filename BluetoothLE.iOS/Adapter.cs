@@ -10,6 +10,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using BluetoothLE.Core.Events;
 using CoreFoundation;
 using Foundation;
+using UIKit;
 
 namespace BluetoothLE.iOS {
 	/// <summary>
@@ -238,6 +239,11 @@ namespace BluetoothLE.iOS {
 		public void StopAdvertising() {
 			_startAdvertise = null;
 			_peripheralManager.StopAdvertising();
+		}
+
+		public bool SupportsAdvertising() {
+			// CBPeripheralManager seems to be widely supported by Apple, in the limited fassion that it is implemented
+			return UIDevice.CurrentDevice.CheckSystemVersion(6, 0);
 		}
 
 		/// <summary>

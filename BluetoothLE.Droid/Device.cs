@@ -59,10 +59,12 @@ namespace BluetoothLE.Droid {
 		#region GattCallback delegate methods
 
 		private void ServicesDiscovered(object sender, EventArgs e) {
+			Services.Clear();
+			var count = _gatt.Services.Count;
 			foreach (var s in _gatt.Services) {
 				var service = new Service(s, _gatt, _callback);
 				Services.Add(service);
-
+				System.Diagnostics.Debug.WriteLine($"S: {service.Id}");
 				ServiceDiscovered(this, new ServiceDiscoveredEventArgs(service));
 			}
 		}
