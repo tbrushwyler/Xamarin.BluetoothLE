@@ -17,7 +17,7 @@ namespace BluetoothLE.iOS
 	{
 		private readonly CBPeripheral _peripheral;
 		internal readonly CBService NativeService;
-
+		
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Service"/> class.
 		/// </summary>
@@ -42,7 +42,6 @@ namespace BluetoothLE.iOS
 			var characteristics = new ObservableCollection<ICharacteristic>();
 			characteristics.CollectionChanged += CharacteristicsOnCollectionChanged;
 			Characteristics = characteristics;
-
 		}
 
 		#region IService implementation
