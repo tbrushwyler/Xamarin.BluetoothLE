@@ -26,6 +26,9 @@ namespace BluetoothLE.iOS
 			_rssi = 0;
 
 			_peripheral.DiscoveredService += DiscoveredService;
+			_peripheral.RssiRead += (object sender, CBRssiEventArgs e) => {
+				this.UpdateRssi(e.Rssi);
+			};
 
 			Services = new List<IService>();
 			AdvertismentData = new Dictionary<Guid, byte[]>();
@@ -99,8 +102,6 @@ namespace BluetoothLE.iOS
 		public void RefreshRssi()
 		{
 			_peripheral.ReadRSSI();
-
-			this.UpdateRssi(_peripheral.RSSI);
 		}
 
 		private Guid _id;
