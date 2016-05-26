@@ -110,6 +110,14 @@ namespace BluetoothLE.Droid {
 		}
 
 		/// <summary>
+		/// Refresh RSSI value from the device.
+		/// </summary>
+		public void RefreshRssi()
+		{
+			//TODO: Implement!
+		}
+
+		/// <summary>
 		///     Gets the unique identifier for the device
 		/// </summary>
 		/// <value>The device identifier</value>

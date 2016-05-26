@@ -93,6 +93,16 @@ namespace BluetoothLE.iOS
 			}
 		}
 
+		/// <summary>
+		/// Refresh RSSI value from the device.
+		/// </summary>
+		public void RefreshRssi()
+		{
+			_peripheral.ReadRSSI();
+
+			this.UpdateRssi(_peripheral.RSSI);
+		}
+
 		private Guid _id;
 		/// <summary>
 		/// Gets the unique identifier for the device

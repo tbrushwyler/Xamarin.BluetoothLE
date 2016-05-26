@@ -69,5 +69,10 @@ namespace BluetoothLE.Core
 		/// Discconnect from the device.
 		/// </summary>
 		void Disconnect();
+
+		/// <summary>
+		/// Refresh RSSI value from the device.
+		/// </summary>
+		void RefreshRssi();
 	}
 }
