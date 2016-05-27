@@ -21,12 +21,12 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// The characteristic allows a write without response (Apple-specific)
 		/// </summary>
-		AppleWriteWithoutResponse 	= 1 << 2, //0x004
+		WriteWithoutResponse 		= 1 << 2, //0x004
 
 		/// <summary>
 		/// The characterisitic allows a write without response
 		/// </summary>
-		WriteWithoutResponse 		= 1 << 3, //0x008
+		Write 						= 1 << 3, //0x008
 
 		/// <summary>
 		/// The characteristic allows notify
@@ -50,13 +50,15 @@ namespace BluetoothLE.Core
 
 		/// <summary>
 		/// The characterisitic requires notify subscription to be encrypted
+		/// iOS Specific
 		/// </summary>
 		NotifyEncryptionRequired 	= 1 << 8, //0x100
 
 		/// <summary>
 		/// The characteristic requires indicate subscription to be encrypted
+		/// iOS Specific
 		/// </summary>
-		IndicateEncryptionRequired 	= 1 << 9, //0x200
+		IndicateEncryptionRequired = 1 << 9, //0x200
 	}
 }
 

@@ -30,7 +30,7 @@ namespace BluetoothLE.Droid
 		/// <summary>
 		/// Occurs when characteristic value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicReadEventArgs> CharacteristicValueUpdated = delegate {};
+		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
 
 		/// <Docs>GATT client</Docs>
 		/// <summary>
@@ -104,7 +104,7 @@ namespace BluetoothLE.Droid
 				return;
 
 			var iChar = new Characteristic(characteristic, gatt, this);
-			CharacteristicValueUpdated(this, new CharacteristicReadEventArgs(iChar));
+			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
 		}
 
 		/// <Docs>GATT client the characteristic is associated with</Docs>
@@ -121,7 +121,13 @@ namespace BluetoothLE.Droid
 			base.OnCharacteristicChanged(gatt, characteristic);
 
 			var iChar = new Characteristic(characteristic, gatt, this);
-			CharacteristicValueUpdated(this, new CharacteristicReadEventArgs(iChar));
+			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
+		}
+
+		public override void OnCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
+			base.OnCharacteristicWrite(gatt, characteristic, status);
+			var iChar = new Characteristic(characteristic, gatt, this);
+			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
 		}
 	}
 }

@@ -6,26 +6,30 @@ using System.Text;
 using Foundation;
 using BluetoothLE.Core.Events;
 
-namespace BluetoothLE.iOS
-{
+namespace BluetoothLE.iOS {
 	/// <summary>
 	/// Concrete implmentation of <see cref="BluetoothLE.Core.ICharacteristic" /> interface
 	/// </summary>
-	public class Characteristic : ICharacteristic, IDisposable
-	{
+	public class Characteristic : ICharacteristic, IDisposable {
 		private readonly CBPeripheral _peripheral;
 		private readonly CBCharacteristic _nativeCharacteristic;
+
+		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
+			CBAttributePermissions nativePermissions = 0;
+			nativePermissions = GetNativePermissions(permissions);
+			_nativeCharacteristic = new CBMutableCharacteristic(CBUUID.FromString(uuid.ToString()), (CBCharacteristicProperties)properties, null, nativePermissions);
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Characteristic"/> class.
 		/// </summary>
 		/// <param name="peripheral">The native peripheral.</param>
 		/// <param name="nativeCharacteristic">The native characteristic.</param>
-		public Characteristic(CBPeripheral peripheral, CBCharacteristic nativeCharacteristic)
-		{
+		public Characteristic(CBPeripheral peripheral, CBCharacteristic nativeCharacteristic) {
 			_peripheral = peripheral;
 			_nativeCharacteristic = nativeCharacteristic;
-
+			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
+			_peripheral.WroteCharacteristicValue += UpdatedCharacteristicValue;
 			_id = _nativeCharacteristic.UUID.ToString().ToGuid();
 		}
 
@@ -34,18 +38,16 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
+		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
 		private bool _isUpdating;
 		/// <summary>
 		/// Subscribe to the characteristic
 		/// </summary>
-		public void StartUpdates()
-		{
+		public void StartUpdates() {
 			if (!CanUpdate)
 				throw new InvalidOperationException("Characteristic does not support UPDATE");
 
-			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
 			_peripheral.SetNotifyValue(true, _nativeCharacteristic);
 			_isUpdating = true;
 		}
@@ -53,10 +55,8 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Unsubscribe from the characteristic
 		/// </summary>
-		public void StopUpdates()
-		{
-			if (CanUpdate)
-			{
+		public void StopUpdates() {
+			if (CanUpdate) {
 				_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
 				_peripheral.SetNotifyValue(false, _nativeCharacteristic);
 			}
@@ -67,11 +67,10 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Read the characteristic's value
 		/// </summary>
-		public void Read()
-		{
+		public void Read() {
 			if (!CanRead)
 				throw new InvalidOperationException("Characteristic does not support READ");
-			
+
 			_peripheral.ReadValue(_nativeCharacteristic);
 		}
 
@@ -79,13 +78,13 @@ namespace BluetoothLE.iOS
 		/// Write the specified data to the characteristic
 		/// </summary>
 		/// <param name="data">Data.</param>
-		public void Write(byte[] data)
-		{
-			if (!CanWrite)
+		public void Write(byte[] data) {
+			if (!CanWrite) {
 				throw new InvalidOperationException("Characteristic does not support WRITE");
+			}
 
 			var nsData = NSData.FromArray(data);
-			var writeType = ((Properties & CharacteristicPropertyType.AppleWriteWithoutResponse) > 0) ?
+			var writeType = ((Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0) ?
 				CBCharacteristicWriteType.WithoutResponse :
 				CBCharacteristicWriteType.WithResponse;
 
@@ -93,6 +92,7 @@ namespace BluetoothLE.iOS
 		}
 
 		private Guid _id;
+
 		/// <summary>
 		/// Gets the unique identifier.
 		/// </summary>
@@ -109,16 +109,21 @@ namespace BluetoothLE.iOS
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
-		public byte[] Value { get { return _nativeCharacteristic.Value.ToArray(); } }
+		public byte[] Value {
+			get {
+				return _nativeCharacteristic.Value?.ToArray();
+			}
+			set {
+				_nativeCharacteristic.Value = NSData.FromArray(value);
+			}
+		}
 
 		/// <summary>
 		/// Gets the characteristic's value as a string.
 		/// </summary>
 		/// <value>The characteristic's value, interpreted as a string.</value>
-		public string StringValue
-		{
-			get
-			{
+		public string StringValue {
+			get {
 				if (Value == null)
 					return string.Empty;
 
@@ -136,7 +141,17 @@ namespace BluetoothLE.iOS
 		/// Gets the characteristic's properties
 		/// </summary>
 		/// <value>The characteristic's properties.</value>
-		public CharacteristicPropertyType Properties { get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; } }
+		public CharacteristicPropertyType Properties {
+			get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; }
+			set {
+
+			}
+		}
+
+		public CharacterisiticPermissionType Permissions {
+			//TODO: Figure out how to get these
+			get { return 0; }
+		}
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can read.
@@ -157,15 +172,19 @@ namespace BluetoothLE.iOS
 		/// </summary>
 		/// <value>true</value>
 		/// <c>false</c>
-		public bool CanWrite { get { return (Properties & (CharacteristicPropertyType.WriteWithoutResponse | CharacteristicPropertyType.AppleWriteWithoutResponse)) > 0; } }
+		public bool CanWrite { get { return (Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0 || (Properties & CharacteristicPropertyType.Write) > 0; } }
 
 		#endregion
 
 		#region CBPeripheral delegate methods
 
-		private void UpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e)
-		{
-			ValueUpdated(this, new CharacteristicReadEventArgs(this));
+		private void UpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e) {
+			var c = e.Characteristic;
+			var cId = c.UUID;
+			var tId = _nativeCharacteristic.UUID;
+			if (cId == tId) {
+				ValueUpdated?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+			}
 		}
 
 		#endregion
@@ -179,15 +198,35 @@ namespace BluetoothLE.iOS
 		/// <see cref="Dispose"/> method leaves the <see cref="BluetoothLE.iOS.Characteristic"/> in an unusable state. After
 		/// calling <see cref="Dispose"/>, you must release all references to the <see cref="BluetoothLE.iOS.Characteristic"/>
 		/// so the garbage collector can reclaim the memory that the <see cref="BluetoothLE.iOS.Characteristic"/> was occupying.</remarks>
-		public void Dispose()
-		{
-			if (_isUpdating)
-			{
-				_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
-			}
+		public void Dispose() {
+			_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
 		}
-
 		#endregion
+
+		private CBAttributePermissions GetNativePermissions(CharacterisiticPermissionType permissions) {
+			CBAttributePermissions nativePermissions = 0;
+			foreach (CharacterisiticPermissionType value in Enum.GetValues(typeof(CharacterisiticPermissionType))) {
+				if (permissions.HasFlag(value)) {
+					switch (value) {
+						case CharacterisiticPermissionType.Read:
+							nativePermissions |= CBAttributePermissions.Readable;
+							break;
+						case CharacterisiticPermissionType.Write:
+							nativePermissions |= CBAttributePermissions.Writeable;
+							break;
+						case CharacterisiticPermissionType.ReadEncrypted:
+							nativePermissions |= CBAttributePermissions.ReadEncryptionRequired;
+							break;
+						case CharacterisiticPermissionType.WriteEncrypted:
+							nativePermissions |= CBAttributePermissions.WriteEncryptionRequired;
+							break;
+					}
+				}
+			}
+			return nativePermissions;
+		}
 	}
 }
+
+
 
