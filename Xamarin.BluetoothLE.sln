@@ -33,6 +33,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLE.Dev.iOS", "BLE.Dev\BLE.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLE.Dev", "BLE.Dev\BLE.Dev\BLE.Dev.csproj", "{BEE7A228-27AA-432E-9671-31B166C07001}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{B8A7FB55-543B-4424-9E4A-043CBE78CCCC}"
+	ProjectSection(SolutionItems) = preProject
+		build.cmd = build.cmd
+		build.fsx = build.fsx
+		build.sh = build.sh
+		nuget.nuspec = nuget.nuspec
+		ReleaseNotes.md = ReleaseNotes.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
@@ -243,7 +252,6 @@ Global
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Debug|x86.Build.0 = Debug|Any CPU
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Release|ARM.ActiveCfg = Release|Any CPU
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Release|ARM.Build.0 = Release|Any CPU
 		{1CC1E8C4-5763-4BA6-8A2E-5880755F25C2}.Release|iPhone.ActiveCfg = Release|Any CPU
@@ -307,7 +315,6 @@ Global
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Debug|x86.Build.0 = Debug|Any CPU
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Debug|x86.Deploy.0 = Debug|Any CPU
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Release|ARM.ActiveCfg = Release|Any CPU
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Release|ARM.Build.0 = Release|Any CPU
 		{EF4D9B79-20FD-4E5C-942C-61C74EC97892}.Release|ARM.Deploy.0 = Release|Any CPU
@@ -351,7 +358,6 @@ Global
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Debug|x64.ActiveCfg = Debug|iPhone
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Debug|x86.ActiveCfg = Debug|iPhone
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Release|Any CPU.ActiveCfg = Release|iPhone
-		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Release|Any CPU.Build.0 = Release|iPhone
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Release|ARM.ActiveCfg = Release|iPhoneSimulator
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Release|iPhone.ActiveCfg = Release|iPhone
 		{E049336A-D455-430C-8D5C-7F70B7B7338E}.Release|iPhone.Build.0 = Release|iPhone
@@ -414,8 +420,6 @@ Global
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Debug|x86.Build.0 = Debug|Any CPU
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Debug|x86.Deploy.0 = Debug|Any CPU
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|Any CPU.Build.0 = Release|Any CPU
-		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|Any CPU.Deploy.0 = Release|Any CPU
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|ARM.ActiveCfg = Release|Any CPU
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|ARM.Build.0 = Release|Any CPU
 		{853466F1-30A3-4BD2-B633-2D6A59CCAF99}.Release|ARM.Deploy.0 = Release|Any CPU
@@ -500,7 +504,6 @@ Global
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Debug|x86.Build.0 = Debug|Any CPU
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BEE7A228-27AA-432E-9671-31B166C07001}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Release|ARM.ActiveCfg = Release|Any CPU
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Release|ARM.Build.0 = Release|Any CPU
 		{BEE7A228-27AA-432E-9671-31B166C07001}.Release|iPhone.ActiveCfg = Release|Any CPU
