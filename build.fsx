@@ -116,7 +116,7 @@ Target "CreateNugetPackage" (fun _ ->
             Version = nugetVersion
             ReleaseNotes = toLines releaseNotes.Notes
             AccessKey = nugetApiKey
-            Publish = false
+            Publish = true
             PublishUrl = nugetServer
             Files = [("**/*.*", None, None)]
         }) nuspecFile 
