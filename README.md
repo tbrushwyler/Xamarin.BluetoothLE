@@ -33,3 +33,6 @@ App.BluetoothAdapter
 ```
 
 Once you have an `IAdapter`, see the documentation [here](https://github.com/tbrushwyler/Xamarin.BluetoothLE/wiki/N_BluetoothLE_Core) for usage.
+
+##Nuget 
+The library can be installed as a [nuget](https://www.nuget.org/packages/XamarinBluetoothLE/1.0.1-alpha-4) package. Currently can be found as a pre-release.
