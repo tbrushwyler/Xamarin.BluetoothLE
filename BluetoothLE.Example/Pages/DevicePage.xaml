@@ -3,13 +3,12 @@
 			 xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 			 x:Class="BluetoothLE.Example.Pages.DevicePage"
 			 Title="{Binding Name}">
-	<ContentPage.Content>
-		<StackLayout>
+		<StackLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
 			<StackLayout Padding="20">
 				<Label Text="{Binding Name}" />
 				<Label Text="{Binding Id, StringFormat = 'Id: {0}'}" />
 			</StackLayout>
-			<ListView x:Name="serviceListView"
+			<!--<ListView x:Name="serviceListView"
 					  IsGroupingEnabled="true"
 					  GroupDisplayBinding="{Binding Key.Uuid}">
 				<ListView.ItemTemplate>
@@ -17,7 +16,6 @@
 						<TextCell Text="{Binding Uuid}" Detail="{Binding Properties}" />
 					</DataTemplate>
 				</ListView.ItemTemplate>
-			</ListView>
+			</ListView>-->
 		</StackLayout>
-	</ContentPage.Content>
 </ContentPage>

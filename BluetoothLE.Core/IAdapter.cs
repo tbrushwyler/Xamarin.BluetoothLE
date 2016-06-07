@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using BluetoothLE.Core.Events;
 
-namespace BluetoothLE.Core
-{
+namespace BluetoothLE.Core {
 	/// <summary>
 	/// Adapter interface that handles device discovery and connection.
 	/// </summary>
-	public interface IAdapter
-	{
+	public interface IAdapter {
 		/// <summary>
 		/// Occurs when device discovered.
 		/// </summary>
@@ -28,6 +27,16 @@ namespace BluetoothLE.Core
 		/// Occurs when a device failed to connect.
 		/// </summary>
 		event EventHandler<DeviceConnectionEventArgs> DeviceFailedToConnect;
+
+		/// <summary>
+		/// Occurs when advertising start fails
+		/// </summary>
+		event EventHandler<AdvertiseStartEventArgs> AdvertiseStartFailed;
+
+		/// <summary>
+		/// Occurs when advertising start succeeds
+		/// </summary>
+		event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
 		/// <summary>
 		/// Occurs when scan timeout elapsed.
@@ -73,7 +82,7 @@ namespace BluetoothLE.Core
 		/// Start scanning for devices.
 		/// </summary>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		void StartScanningForDevices(params string[] serviceUuids);
+		void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids);
 
 		/// <summary>
 		/// Stop scanning for devices.
@@ -92,6 +101,19 @@ namespace BluetoothLE.Core
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
 
+
+		void StartAdvertising(string localName, List<IService> services);
+
+		/// <summary>
+		/// Stop advertising
+		/// </summary>
+		void StopAdvertising();
+
+		/// <summary>
+		/// Checks if the device supports advertising and peripheral mode, iOS versions above 6.0 and Android devices that pass tests
+		/// </summary>
+		/// <returns></returns>
+		bool SupportsAdvertising();
 	}
 }
 
