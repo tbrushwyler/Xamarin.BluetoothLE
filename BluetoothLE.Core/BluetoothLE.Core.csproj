@@ -35,6 +35,7 @@
     <Compile Include="CharacteristicPermissionType.cs" />
     <Compile Include="Events\AdvertiseStartEventArgs.cs" />
     <Compile Include="Events\PeripheralEventArgs.cs" />
+    <Compile Include="Events\RssiUpdateEventArgs.cs" />
     <Compile Include="Exceptions\CharacteristicException.cs" />
     <Compile Include="Factory\ICharacteristicsFactory.cs" />
     <Compile Include="Factory\IServiceFactory.cs" />
