@@ -34,9 +34,15 @@ namespace BluetoothLE.Droid {
 
 			if (_callback != null) {
 				_callback.ServicesDiscovered += ServicesDiscovered;
+				_callback.RssiValueUpdated += CallbackOnRssiValueUpdated;
 			}
+
 			_advertismentData = new Dictionary<Guid, byte[]>();
 			Services = new List<IService>();
+		}
+
+		private void CallbackOnRssiValueUpdated(object sender, RssiUpdateEventArgs rssiUpdateEventArgs) {
+			Rssi = rssiUpdateEventArgs.Rssi;
 		}
 
 		/// <summary>
@@ -64,7 +70,6 @@ namespace BluetoothLE.Droid {
 			foreach (var s in _gatt.Services) {
 				var service = new Service(s, _gatt, _callback);
 				Services.Add(service);
-				System.Diagnostics.Debug.WriteLine($"S: {service.Id}");
 				ServiceDiscovered(this, new ServiceDiscoveredEventArgs(service));
 			}
 		}
@@ -112,9 +117,8 @@ namespace BluetoothLE.Droid {
 		/// <summary>
 		/// Refresh RSSI value from the device.
 		/// </summary>
-		public void RefreshRssi()
-		{
-			//TODO: Implement!
+		public void RefreshRssi() {
+			_gatt?.ReadRemoteRssi();
 		}
 
 		/// <summary>
@@ -135,7 +139,7 @@ namespace BluetoothLE.Droid {
 		///     Gets the Received Signal Strength Indicator
 		/// </summary>
 		/// <value>The RSSI in decibels</value>
-		public int Rssi { get; }
+		public int Rssi { get; private set; }
 
 		/// <summary>
 		///		Gets the advertisment data
