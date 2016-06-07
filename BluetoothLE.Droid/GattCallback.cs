@@ -32,6 +32,11 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
 
+		/// <summary>
+		/// Occurs when the RSSI is updated
+		/// </summary>
+		public event EventHandler<RssiUpdateEventArgs> RssiValueUpdated = delegate { };
+
 		/// <Docs>GATT client</Docs>
 		/// <summary>
 		/// Raises the connection state change event.
@@ -128,6 +133,11 @@ namespace BluetoothLE.Droid
 			base.OnCharacteristicWrite(gatt, characteristic, status);
 			var iChar = new Characteristic(characteristic, gatt, this);
 			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
+		}
+
+		public override void OnReadRemoteRssi(BluetoothGatt gatt, int rssi, GattStatus status) {
+			base.OnReadRemoteRssi(gatt, rssi, status);
+			RssiValueUpdated(this, new RssiUpdateEventArgs(rssi));
 		}
 	}
 }
