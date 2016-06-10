@@ -11,5 +11,17 @@ namespace BLE.Dev {
 		public DeviceDetailPage() {
 			InitializeComponent();
 		}
+
+		protected override void OnAppearing() {
+			base.OnAppearing();
+			var viewModel = (DeviceViewModel) BindingContext;
+			viewModel.Connect();
+		}
+
+		protected override void OnDisappearing() {
+			base.OnDisappearing();
+			var viewModel = (DeviceViewModel)BindingContext;
+			viewModel.Disconnect();
+		}
 	}
 }

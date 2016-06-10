@@ -49,7 +49,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>
-		public event EventHandler<CharacteristicDiscoveredEventArgs> CharacteristicDiscovered = delegate {};
+		public event EventHandler<CharacteristicsDiscoveredEventArgs> CharacteristicDiscovered = delegate {};
 
 		/// <summary>
 		/// Discovers the characteristics for the services.
@@ -97,6 +97,7 @@ namespace BluetoothLE.iOS
 			if (args.Service.UUID != NativeService.UUID)
 				return;
 			
+			Characteristics.Clear();
 			foreach (var c in args.Service.Characteristics)
 			{
 				var charId = c.UUID.ToString().ToGuid();
@@ -104,10 +105,9 @@ namespace BluetoothLE.iOS
 				{
 					var characteristic = new Characteristic(_peripheral, c);
 					Characteristics.Add(characteristic);
-
-					CharacteristicDiscovered(this, new CharacteristicDiscoveredEventArgs(characteristic));
 				}
 			}
+			CharacteristicDiscovered(this, new CharacteristicsDiscoveredEventArgs(Characteristics));
 		}
 
 		#endregion

@@ -12,7 +12,7 @@ namespace BLE.Dev {
 			BindingContext = new DevicePageViewModel();
 
 			InitializeComponent();
-			//ListView.ItemSelected += ListViewOnItemSelected;
+			ListView.ItemSelected += ListViewOnItemSelected;
 		}
 
 		private void ListViewOnItemSelected(object sender, SelectedItemChangedEventArgs selectedItemChangedEventArgs) {

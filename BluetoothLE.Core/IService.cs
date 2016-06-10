@@ -11,7 +11,7 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>
-		event EventHandler<CharacteristicDiscoveredEventArgs> CharacteristicDiscovered;
+		event EventHandler<CharacteristicsDiscoveredEventArgs> CharacteristicDiscovered;
 
 		/// <summary>
 		/// Gets the service's unique identifier.

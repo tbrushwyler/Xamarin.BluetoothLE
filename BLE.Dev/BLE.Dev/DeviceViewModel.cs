@@ -33,11 +33,34 @@ namespace BLE.Dev {
 
 		public void DeviceConnected() {
 			_device.DiscoverServices();
-			_device.ServiceDiscovered += DeviceOnServiceDiscovered;
+			_device.ServicesDiscovered += DeviceOnServicesDiscovered;
 		}
 
-		private void DeviceOnServiceDiscovered(object sender, ServiceDiscoveredEventArgs serviceDiscoveredEventArgs) {
+		private void DeviceOnServicesDiscovered(object sender, ServicesDiscoveredEventArgs serviceDiscoveredEventArgs) {
 			RaisePropertyChanged(() => ServiceCount);
+		}
+
+		public void Connect() {
+			if (_device.State == DeviceState.Disconnected) {
+				_adapter.ConnectToDevice(_device);
+				_adapter.DeviceConnected += AdapterOnDeviceConnected;
+			}
+			ProcessConnection();
+		}
+
+		private void ProcessConnection() {
+			if (_device.State == DeviceState.Disconnected)
+			if (_device.State == DeviceState.Connected && _device.Services == null) {
+				_device.DiscoverServices();
+			} else if (_de)
+		}
+
+		public void Disconnect() {
+			_device.Disconnect();
+		}
+
+		private void AdapterOnDeviceConnected(object sender, DeviceConnectionEventArgs deviceConnectionEventArgs) {
+			 ProcessConnection();
 		}
 	}
 }

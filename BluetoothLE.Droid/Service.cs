@@ -57,7 +57,7 @@ namespace BluetoothLE.Droid
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>
-		public event EventHandler<CharacteristicDiscoveredEventArgs> CharacteristicDiscovered = delegate { };
+		public event EventHandler<CharacteristicsDiscoveredEventArgs> CharacteristicDiscovered = delegate { };
 
 		/// <summary>
 		/// Discovers the characteristics for the services.
@@ -68,8 +68,8 @@ namespace BluetoothLE.Droid
 			foreach (var c in NativeService.Characteristics) {
 				var characteristic = new Characteristic(c, _gatt, _callback);
 				Characteristics.Add(characteristic);
-				CharacteristicDiscovered(this, new CharacteristicDiscoveredEventArgs(characteristic));
 			}
+			CharacteristicDiscovered(this, new CharacteristicsDiscoveredEventArgs(Characteristics));
 		}
 
 		private readonly Guid _id;

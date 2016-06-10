@@ -29,7 +29,7 @@ namespace BLE.Dev {
 		private uint[] _voltageTemperatureZoneAcc;
 		private uint _time;
 		private int _configuration;
-
+		private int _signalStrength;
 		public ObservableCollection<DeviceViewModel> Devices { get; private set;}
 
 		public string AdvertiseStatus {
@@ -93,6 +93,14 @@ namespace BLE.Dev {
 			set {
 				_configuration = value; 
 				RaisePropertyChanged(() => Configuration);
+			}
+		}
+
+		public int SignalStrength {
+			get { return _signalStrength; }
+			set {
+				_signalStrength = value; 
+				RaisePropertyChanged(() => SignalStrength);
 			}
 		}
 

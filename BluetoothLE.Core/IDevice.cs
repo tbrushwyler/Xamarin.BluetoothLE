@@ -12,7 +12,7 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// Occurs when services discovered.
 		/// </summary>
-		event EventHandler<ServiceDiscoveredEventArgs> ServiceDiscovered;
+		event EventHandler<ServicesDiscoveredEventArgs> ServicesDiscovered;
 
 		/// <summary>
 		/// Gets the unique identifier for the device

@@ -8,6 +8,7 @@ using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.iOS
 {
+
 	/// <summary>
 	/// Concrete implmentation of <see cref="BluetoothLE.Core.IDevice" /> interface
 	/// </summary>
@@ -24,7 +25,7 @@ namespace BluetoothLE.iOS
 			_peripheral = peripheral;
 			_id = DeviceIdentifierToGuid(_peripheral.Identifier);
 			_rssi = 0;
-
+			
 			_peripheral.DiscoveredService += DiscoveredService;
 			_peripheral.RssiRead += (object sender, CBRssiEventArgs e) => {
 				this.UpdateRssi(e.Rssi);
@@ -69,7 +70,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when services discovered.
 		/// </summary>
-		public event EventHandler<ServiceDiscoveredEventArgs> ServiceDiscovered = delegate {};
+		public event EventHandler<ServicesDiscoveredEventArgs> ServicesDiscovered = delegate {};
 
 		/// <summary>
 		/// Initiate a service discovery on the device
@@ -169,18 +170,16 @@ namespace BluetoothLE.iOS
 
 		private void DiscoveredService(object sender, NSErrorEventArgs args)
 		{
+			
 			if (_peripheral.Services != null) 
 			{
+				Services.Clear();
 				foreach (var s in _peripheral.Services)
 				{
-					var serviceId = s.UUID.ToString().ToGuid();
-					if (Services.All(x => x.Id != serviceId))
-					{
-						var service = new Service(_peripheral, s);
-						Services.Add(service);
-						ServiceDiscovered(this, new ServiceDiscoveredEventArgs(service));
-					}
+					var service = new Service(_peripheral, s);
+					Services.Add(service);
 				}
+				ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services));
 			}
 		}
 
