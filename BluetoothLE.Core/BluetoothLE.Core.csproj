@@ -36,6 +36,7 @@
     <Compile Include="Events\AdvertiseStartEventArgs.cs" />
     <Compile Include="Events\PeripheralEventArgs.cs" />
     <Compile Include="Events\RssiUpdateEventArgs.cs" />
+    <Compile Include="Events\ServicesDiscoveredEventArgs.cs" />
     <Compile Include="Exceptions\CharacteristicException.cs" />
     <Compile Include="Factory\ICharacteristicsFactory.cs" />
     <Compile Include="Factory\IServiceFactory.cs" />
@@ -51,7 +52,7 @@
     <Compile Include="Events\CharacteristicUpdateEventArgs.cs" />
     <Compile Include="Events\DeviceConnectionEventArgs.cs" />
     <Compile Include="Events\DeviceDiscoveredEventArgs.cs" />
-    <Compile Include="Events\CharacteristicDiscoveredEventArgs.cs" />
+    <Compile Include="Events\CharacteristicsDiscoveredEventArgs.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <ItemGroup />

@@ -18,7 +18,7 @@ namespace BluetoothLE.Example.Pages
 		public DevicePage(IDevice device)
 		{
 			_device = device;
-			_device.ServiceDiscovered += ServiceDiscovered;
+			_device.ServicesDiscovered += ServicesDiscovered;
 
 			DiscoveredServices = new ObservableCollection<Grouping<IService, ICharacteristic>>();
 
@@ -56,23 +56,28 @@ namespace BluetoothLE.Example.Pages
 
 		#region IDevice callbacks
 
-		void ServiceDiscovered (object sender, ServiceDiscoveredEventArgs e)
+		void ServicesDiscovered (object sender, ServicesDiscoveredEventArgs e)
 		{
-			var grouping = new Grouping<IService, ICharacteristic>(e.Service);
+			foreach (var service in e.Services) {
+				var grouping = new Grouping<IService, ICharacteristic>(service);
 
-			e.Service.CharacteristicDiscovered += (s, evt) => CharacteristicDiscovered(s, evt, grouping);
-			e.Service.DiscoverCharacteristics();
+				service.CharacteristicDiscovered += (s, evt) => CharacteristicDiscovered(s, evt, grouping);
+				service.DiscoverCharacteristics();
 
-			DiscoveredServices.Add(grouping);
+				DiscoveredServices.Add(grouping);
+			}
 		}
 
 		#endregion
 
 		#region IService callbacks
 
-		void CharacteristicDiscovered (object sender, CharacteristicDiscoveredEventArgs e, Grouping<IService, ICharacteristic> grouping)
+		void CharacteristicDiscovered (object sender, CharacteristicsDiscoveredEventArgs e, Grouping<IService, ICharacteristic> grouping)
 		{
-			grouping.Add(e.Characteristic);
+			foreach (var characteristic in e.Characteristics) {
+				grouping.Add(characteristic);
+			}
+			
 		}
 
 		#endregion

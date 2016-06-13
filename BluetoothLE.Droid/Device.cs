@@ -33,7 +33,7 @@ namespace BluetoothLE.Droid {
 			Id = DeviceIdFromAddress(_nativeDevice.Address);
 
 			if (_callback != null) {
-				_callback.ServicesDiscovered += ServicesDiscovered;
+				_callback.ServicesDiscovered += OnServicesDiscovered;
 				_callback.RssiValueUpdated += CallbackOnRssiValueUpdated;
 			}
 
@@ -64,14 +64,13 @@ namespace BluetoothLE.Droid {
 
 		#region GattCallback delegate methods
 
-		private void ServicesDiscovered(object sender, EventArgs e) {
+		private void OnServicesDiscovered(object sender, EventArgs e) {
 			Services.Clear();
-			var count = _gatt.Services.Count;
 			foreach (var s in _gatt.Services) {
 				var service = new Service(s, _gatt, _callback);
 				Services.Add(service);
-				ServiceDiscovered(this, new ServiceDiscoveredEventArgs(service));
 			}
+			ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services));
 		}
 
 		#endregion
@@ -81,7 +80,7 @@ namespace BluetoothLE.Droid {
 		/// <summary>
 		///     Occurs when services discovered.
 		/// </summary>
-		public event EventHandler<ServiceDiscoveredEventArgs> ServiceDiscovered = delegate { };
+		public event EventHandler<ServicesDiscoveredEventArgs> ServicesDiscovered = delegate { };
 
 		/// <summary>
 		///     Initiate a service discovery on the device

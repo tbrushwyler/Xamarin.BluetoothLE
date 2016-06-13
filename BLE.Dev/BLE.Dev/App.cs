@@ -9,7 +9,7 @@ namespace BLE.Dev {
 	public class App : Application {
 		public App() {
 			// The root page of your application
-			MainPage = new NavigationPage(new DevicePage());
+			MainPage = new NavigationPage(new DeviceListPage());
 		}
 
 		protected override void OnStart() {

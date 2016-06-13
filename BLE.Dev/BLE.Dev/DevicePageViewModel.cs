@@ -29,7 +29,7 @@ namespace BLE.Dev {
 		private uint[] _voltageTemperatureZoneAcc;
 		private uint _time;
 		private int _configuration;
-
+		private int _signalStrength;
 		public ObservableCollection<DeviceViewModel> Devices { get; private set;}
 
 		public string AdvertiseStatus {
@@ -96,6 +96,14 @@ namespace BLE.Dev {
 			}
 		}
 
+		public int SignalStrength {
+			get { return _signalStrength; }
+			set {
+				_signalStrength = value; 
+				RaisePropertyChanged(() => SignalStrength);
+			}
+		}
+
 		public DevicePageViewModel() {
 			Devices= new ObservableCollection<DeviceViewModel>();
 			
@@ -105,9 +113,6 @@ namespace BLE.Dev {
 			_adapter.AdvertiseStartSuccess += AdapterOnAdvertiseStartSuccess;
 
 			_adapter.DeviceDiscovered += AdapterOnDeviceDiscovered;
-			_adapter.DeviceConnected += AdapterOnDeviceConnected;
-
-			_adapter.StartScanningForDevices(true);
 
 			var serviceFactory = DependencyService.Get<IServiceFactory>();
 			var service = serviceFactory.CreateService(BattByteServiceGuid, true);
@@ -168,12 +173,6 @@ namespace BLE.Dev {
 			}
 		}
 
-		private void AdapterOnDeviceConnected(object sender, DeviceConnectionEventArgs deviceConnectionEventArgs) {
-			var device = Devices.FirstOrDefault(x => x.Device.Id == deviceConnectionEventArgs.Device.Id);
-			device.Device = deviceConnectionEventArgs.Device;
-			device?.DeviceConnected();
-		}
-
 		private void AdapterOnAdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
 			AdvertiseStatus = "Advertising";
 		}
@@ -181,6 +180,14 @@ namespace BLE.Dev {
 		private void AdapterOnAdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
 			throw new Exception("Avertise failed");
 			AdvertiseStatus = "Avertise failed";
+		}
+
+		public void Refresh() {
+			_adapter.StartScanningForDevices(true);
+		}
+
+		public void Clear() {
+			Devices.Clear();
 		}
 	}
 }
