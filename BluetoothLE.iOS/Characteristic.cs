@@ -31,12 +31,12 @@ namespace BluetoothLE.iOS {
 			_nativeCharacteristic = nativeCharacteristic;
 			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
 			_peripheral.UpdatedNotificationState += PeripheralOnUpdatedNotificationState;
-			_peripheral.WroteCharacteristicValue += UpdatedCharacteristicValue;
+			_peripheral.WroteCharacteristicValue += WroteCharacteristicValue;
 			_id = _nativeCharacteristic.UUID.ToString().ToGuid();
 		}
 
 		private void PeripheralOnUpdatedNotificationState(object sender, CBCharacteristicEventArgs cbCharacteristicEventArgs) {
-			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this));
+			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, cbCharacteristicEventArgs.Error == null));
 		}
 
 		#region ICharacteristic implementation
@@ -50,6 +50,8 @@ namespace BluetoothLE.iOS {
 		/// Occurs when the subscription state changed
 		/// </summary>
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
+
+		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
 
 		/// <summary>
 		/// Is the charactersitic subscribed to
@@ -203,6 +205,15 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
+		private void WroteCharacteristicValue(object sender, CBCharacteristicEventArgs cbCharacteristicEventArgs) {
+			var c = cbCharacteristicEventArgs.Characteristic;
+			var cId = c.UUID;
+			var tId = _nativeCharacteristic.UUID;
+			if (cId == tId) {
+				WriteComplete?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+			}
+		}
+
 		#endregion
 
 		#region IDisposable implementation
@@ -217,6 +228,7 @@ namespace BluetoothLE.iOS {
 		public void Dispose() {
 			_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
 		}
+
 		#endregion
 
 		private CBAttributePermissions GetNativePermissions(CharacterisiticPermissionType permissions) {
