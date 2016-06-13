@@ -25,6 +25,7 @@ namespace BluetoothLE.Example.Pages
 			App.BluetoothAdapter.DeviceConnected += DeviceConnected;
 			App.BluetoothAdapter.StartScanningForDevices();
 		}
+		
 
 		void DeviceSelected (object sender, SelectedItemChangedEventArgs e)
 		{

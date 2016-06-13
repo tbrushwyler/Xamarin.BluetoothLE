@@ -12,7 +12,7 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// Occurs when services discovered.
 		/// </summary>
-		event EventHandler<ServiceDiscoveredEventArgs> ServiceDiscovered;
+		event EventHandler<ServicesDiscoveredEventArgs> ServicesDiscovered;
 
 		/// <summary>
 		/// Gets the unique identifier for the device
@@ -31,6 +31,16 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <value>The RSSI in decibels</value>
 		int Rssi { get; }
+
+		/// <summary>
+		/// Advertisment data found at device discovery
+		/// </summary>
+		Dictionary<Guid, byte[]> AdvertismentData { get; }
+
+		/// <summary>
+		/// Service UUIDs included in the advertisment data
+		/// </summary>
+		List<Guid> AdvertisedServiceUuids { get; }
 
 		/// <summary>
 		/// Gets the native device object reference. Should be cast to the appropriate type.
@@ -59,6 +69,10 @@ namespace BluetoothLE.Core
 		/// Discconnect from the device.
 		/// </summary>
 		void Disconnect();
+
+		/// <summary>
+		/// Refresh RSSI value from the device.
+		/// </summary>
+		void RefreshRssi();
 	}
 }
-

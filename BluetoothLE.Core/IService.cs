@@ -7,12 +7,11 @@ namespace BluetoothLE.Core
 	/// <summary>
 	/// The service interface.
 	/// </summary>
-	public interface IService
-	{
+	public interface IService {
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>
-		event EventHandler<CharacteristicDiscoveredEventArgs> CharacteristicDiscovered;
+		event EventHandler<CharacteristicsDiscoveredEventArgs> CharacteristicDiscovered;
 
 		/// <summary>
 		/// Gets the service's unique identifier.

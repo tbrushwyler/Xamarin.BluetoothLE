@@ -2,8 +2,11 @@
 using BluetoothLE.Core;
 using CoreBluetooth;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using BluetoothLE.Core.Events;
+using Foundation;
 
 namespace BluetoothLE.iOS
 {
@@ -13,8 +16,8 @@ namespace BluetoothLE.iOS
 	public class Service : IService, IDisposable
 	{
 		private readonly CBPeripheral _peripheral;
-		private readonly CBService _nativeService;
-
+		internal readonly CBService NativeService;
+		
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Service"/> class.
 		/// </summary>
@@ -23,7 +26,7 @@ namespace BluetoothLE.iOS
 		public Service(CBPeripheral peripheral, CBService service)
 		{
 			_peripheral = peripheral;
-			_nativeService = service;
+			NativeService = service;
 
 			_id = service.UUID.ToString().ToGuid();
 
@@ -32,22 +35,34 @@ namespace BluetoothLE.iOS
 			Characteristics = new List<ICharacteristic>();
 		}
 
+		public Service(Guid uuid, bool isPrimary) {
+			this.uuid = uuid;
+			NativeService = new CBMutableService(CBUUID.FromString(uuid.ToString()), isPrimary);
+
+			var characteristics = new ObservableCollection<ICharacteristic>();
+			characteristics.CollectionChanged += CharacteristicsOnCollectionChanged;
+			Characteristics = characteristics;
+		}
+
 		#region IService implementation
 
 		/// <summary>
 		/// Occurs when characteristics discovered.
 		/// </summary>
-		public event EventHandler<CharacteristicDiscoveredEventArgs> CharacteristicDiscovered = delegate {};
+		public event EventHandler<CharacteristicsDiscoveredEventArgs> CharacteristicDiscovered = delegate {};
 
 		/// <summary>
 		/// Discovers the characteristics for the services.
 		/// </summary>
 		public void DiscoverCharacteristics()
 		{
-			_peripheral.DiscoverCharacteristics(_nativeService);
+			_peripheral.DiscoverCharacteristics(NativeService);
 		}
 
 		private Guid _id;
+
+		private Guid uuid;
+
 		/// <summary>
 		/// Gets the service's unique identifier.
 		/// </summary>
@@ -58,14 +73,14 @@ namespace BluetoothLE.iOS
 		/// Gets the UUID.
 		/// </summary>
 		/// <value>The UUID.</value>
-		public string Uuid { get { return _nativeService.UUID.ToString(); }}
+		public string Uuid { get { return NativeService.UUID.ToString(); }}
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is primary.
 		/// </summary>
 		/// <value>true</value>
 		/// <c>false</c>
-		public bool IsPrimary { get { return _nativeService.Primary; } }
+		public bool IsPrimary { get { return NativeService.Primary; } }
 
 		/// <summary>
 		/// Gets the service's characteristics.
@@ -79,9 +94,10 @@ namespace BluetoothLE.iOS
 
 		private void DiscoveredCharacteristic(object sender, CBServiceEventArgs args)
 		{
-			if (args.Service.UUID != _nativeService.UUID)
+			if (args.Service.UUID != NativeService.UUID)
 				return;
 			
+			Characteristics.Clear();
 			foreach (var c in args.Service.Characteristics)
 			{
 				var charId = c.UUID.ToString().ToGuid();
@@ -89,10 +105,9 @@ namespace BluetoothLE.iOS
 				{
 					var characteristic = new Characteristic(_peripheral, c);
 					Characteristics.Add(characteristic);
-
-					CharacteristicDiscovered(this, new CharacteristicDiscoveredEventArgs(characteristic));
 				}
 			}
+			CharacteristicDiscovered(this, new CharacteristicsDiscoveredEventArgs(Characteristics));
 		}
 
 		#endregion
@@ -112,6 +127,37 @@ namespace BluetoothLE.iOS
 		}
 
 		#endregion
+
+		private void CharacteristicsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs) {
+			foreach (ICharacteristic newItem in notifyCollectionChangedEventArgs.NewItems) {
+				switch (notifyCollectionChangedEventArgs.Action) {
+					case NotifyCollectionChangedAction.Add:
+						var nativeService = (CBMutableService)NativeService;
+						NSMutableArray<CBCharacteristic> characteristics;
+						if (NativeService.Characteristics == null){
+							characteristics = new NSMutableArray<CBCharacteristic>();
+						} else {
+							characteristics = new NSMutableArray<CBCharacteristic>(NativeService.Characteristics);
+						}
+						 
+						characteristics.Add((CBCharacteristic) newItem.NativeCharacteristic);
+						nativeService.Characteristics = characteristics.ToArray();
+						break;
+					case NotifyCollectionChangedAction.Remove:
+						// remove characteristic
+						break;
+					case NotifyCollectionChangedAction.Replace:
+						// create & remove
+						break;
+					case NotifyCollectionChangedAction.Reset:
+						// Remove all
+						break;
+					case NotifyCollectionChangedAction.Move:
+					default:
+						break;
+				}
+			}
+		}
 	}
 }
 

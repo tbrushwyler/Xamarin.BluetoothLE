@@ -1,25 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace BluetoothLE.Core.Events
 {
 	/// <summary>
 	/// Characteristic discovered event arguments.
 	/// </summary>
-	public class CharacteristicDiscoveredEventArgs : EventArgs
+	public class CharacteristicsDiscoveredEventArgs : EventArgs
 	{
 		/// <summary>
 		/// Gets or sets the characteristic that was discovered.
 		/// </summary>
 		/// <value>The characteristic.</value>
-		public ICharacteristic Characteristic { get; set; }
+		public IList<ICharacteristic> Characteristics { get; set; }
 
 		/// <summary>
-		/// Initializes a new instance of the <see cref="BluetoothLE.Core.Events.CharacteristicDiscoveredEventArgs"/> class.
+		/// Initializes a new instance of the <see cref="CharacteristicsDiscoveredEventArgs"/> class.
 		/// </summary>
 		/// <param name="characteristic">The characteristic that was discovered.</param>
-		public CharacteristicDiscoveredEventArgs(ICharacteristic characteristic)
+		public CharacteristicsDiscoveredEventArgs(IList<ICharacteristic> characteristics)
 		{
-			Characteristic = characteristic;
+			Characteristics = characteristics;
 		}
 	}
 }

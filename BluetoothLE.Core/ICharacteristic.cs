@@ -12,7 +12,9 @@ namespace BluetoothLE.Core
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
+		event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
+
+		event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
 
 		/// <summary>
 		/// Gets the unique identifier.
@@ -30,7 +32,7 @@ namespace BluetoothLE.Core
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
-		byte[] Value { get; }
+		byte[] Value { get; set; }
 
 		/// <summary>
 		/// Gets the characteristic's value as a string.
@@ -51,6 +53,11 @@ namespace BluetoothLE.Core
 		CharacteristicPropertyType Properties { get; }
 
 		/// <summary>
+		/// Gets the characteristic's permissions
+		/// </summary>
+		CharacterisiticPermissionType Permissions { get; }
+
+		/// <summary>
 		/// Gets a value indicating whether this instance can read.
 		/// </summary>
 		/// <value><c>true</c> if this instance can read; otherwise, <c>false</c>.</value>
@@ -67,6 +74,8 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <value><c>true</c> if this instance can write; otherwise, <c>false</c>.</value>
 		bool CanWrite { get; }
+
+		bool Updating { get; }
 
 		/// <summary>
 		/// Subscribe to the characteristic

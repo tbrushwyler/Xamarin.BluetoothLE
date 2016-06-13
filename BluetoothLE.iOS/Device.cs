@@ -8,6 +8,7 @@ using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.iOS
 {
+
 	/// <summary>
 	/// Concrete implmentation of <see cref="BluetoothLE.Core.IDevice" /> interface
 	/// </summary>
@@ -23,6 +24,31 @@ namespace BluetoothLE.iOS
 		{
 			_peripheral = peripheral;
 			_id = DeviceIdentifierToGuid(_peripheral.Identifier);
+			_rssi = 0;
+			
+			_peripheral.DiscoveredService += DiscoveredService;
+			_peripheral.RssiRead += (object sender, CBRssiEventArgs e) => {
+				this.UpdateRssi(e.Rssi);
+			};
+
+			Services = new List<IService>();
+			AdvertismentData = new Dictionary<Guid, byte[]>();
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="BluetoothLE.iOS.Device"/> class.
+		/// </summary>
+		/// <param name="peripheral">Native peripheral.</param>
+		/// <param name="rssi">RSSI value.</param>
+		public Device(CBPeripheral peripheral, NSNumber rssi)
+		{
+			_peripheral = peripheral;
+			_id = DeviceIdentifierToGuid(_peripheral.Identifier);
+
+			if(rssi != null)
+			{
+				_rssi = rssi.Int32Value;
+			}
 
 			_peripheral.DiscoveredService += DiscoveredService;
 
@@ -44,7 +70,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when services discovered.
 		/// </summary>
-		public event EventHandler<ServiceDiscoveredEventArgs> ServiceDiscovered = delegate {};
+		public event EventHandler<ServicesDiscoveredEventArgs> ServicesDiscovered = delegate {};
 
 		/// <summary>
 		/// Initiate a service discovery on the device
@@ -63,6 +89,22 @@ namespace BluetoothLE.iOS
 			_peripheral.Dispose();
 		}
 
+		internal void UpdateRssi(NSNumber rssi)
+		{
+			if(rssi != null)
+			{
+				_rssi = rssi.Int32Value;
+			}
+		}
+
+		/// <summary>
+		/// Refresh RSSI value from the device.
+		/// </summary>
+		public void RefreshRssi()
+		{
+			_peripheral.ReadRSSI();
+		}
+
 		private Guid _id;
 		/// <summary>
 		/// Gets the unique identifier for the device
@@ -76,11 +118,17 @@ namespace BluetoothLE.iOS
 		/// <value>The device name</value>
 		public string Name { get { return _peripheral.Name; } }
 
+		private int _rssi;
 		/// <summary>
 		/// Gets the Received Signal Strength Indicator
 		/// </summary>
 		/// <value>The RSSI in decibels</value>
-		public int Rssi { get { return _peripheral.RSSI.Int32Value; } }
+		public int Rssi { get { return _rssi; } }
+
+		public Dictionary<Guid, byte[]> AdvertismentData { get; internal set; }
+
+		public List<Guid> AdvertisedServiceUuids { get; internal set; }
+		//public int Rssi { get { return _peripheral.RSSI == null ? 0 : _peripheral.RSSI.Int32Value; } }
 
 		/// <summary>
 		/// Gets the native device object reference. Should be cast to the appropriate type.
@@ -122,18 +170,16 @@ namespace BluetoothLE.iOS
 
 		private void DiscoveredService(object sender, NSErrorEventArgs args)
 		{
+			
 			if (_peripheral.Services != null) 
 			{
+				Services.Clear();
 				foreach (var s in _peripheral.Services)
 				{
-					var serviceId = s.UUID.ToString().ToGuid();
-					if (Services.All(x => x.Id != serviceId))
-					{
-						var service = new Service(_peripheral, s);
-						Services.Add(service);
-						ServiceDiscovered(this, new ServiceDiscoveredEventArgs(service));
-					}
+					var service = new Service(_peripheral, s);
+					Services.Add(service);
 				}
+				ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services));
 			}
 		}
 
