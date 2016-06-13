@@ -7,8 +7,8 @@ using BluetoothLE.Core;
 using BluetoothLE.Core.Events;
 
 namespace BLE.Dev {
-	partial class DevicePage : ContentPage {
-		public DevicePage() {
+	partial class DeviceListPage : ContentPage {
+		public DeviceListPage() {
 			BindingContext = new DevicePageViewModel();
 
 			InitializeComponent();
@@ -22,6 +22,18 @@ namespace BLE.Dev {
 				BindingContext = deviceViewModel
 			};
 			Navigation.PushAsync(detailPage);
+		}
+
+		protected override void OnAppearing() {
+			base.OnAppearing();
+			var model = (DevicePageViewModel)BindingContext;
+			model.Refresh();
+		}
+
+		protected override void OnDisappearing() {
+			base.OnDisappearing();
+			var model = (DevicePageViewModel) BindingContext;
+			model.Clear();
 		}
 	}
 }

@@ -10,6 +10,7 @@ namespace BLE.Dev {
 	public partial class DeviceDetailPage : ContentPage {
 		public DeviceDetailPage() {
 			InitializeComponent();
+			this.ServiceListView.ItemTemplate = new DataTemplate(typeof(ServiceViewCell));
 		}
 
 		protected override void OnAppearing() {

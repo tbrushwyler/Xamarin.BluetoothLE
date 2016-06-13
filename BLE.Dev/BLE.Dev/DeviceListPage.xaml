@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="BLE.Dev.DevicePage">
+             x:Class="BLE.Dev.DeviceListPage">
   <ContentPage.Content>
 
     <StackLayout HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -39,10 +39,15 @@
         <Label x:Name="TimeDataLabel" Text="{Binding Time}" Grid.Column="1" Grid.Row="6"></Label>
         <Label x:Name="SignalStrengthDataLabel" Text="{Binding SignalStrength}" Grid.Column="1" Grid.Row="7"></Label>
       </Grid>-->
-      <ListView x:Name="ListView" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" ItemsSource="{Binding Devices}" BackgroundColor="Maroon">
+      <ListView x:Name="ListView" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" ItemsSource="{Binding Devices}" BackgroundColor="White">
         <ListView.ItemTemplate>
           <DataTemplate>
-            <TextCell Text="{Binding Name}" Detail="{Binding ServiceCount}"></TextCell>
+            <ViewCell>
+              <StackLayout Orientation="Vertical" BackgroundColor="Maroon">
+                <Label HorizontalOptions="StartAndExpand" TextColor="White" Text="{Binding Name}"></Label>
+                <Label HorizontalOptions="StartAndExpand" VerticalOptions="EndAndExpand" Text="{Binding DeviceId}" TextColor="Gray"></Label>
+              </StackLayout>
+            </ViewCell>
           </DataTemplate>
         </ListView.ItemTemplate>
       </ListView>
