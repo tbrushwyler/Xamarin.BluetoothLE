@@ -13,6 +13,7 @@ namespace BluetoothLE.iOS {
 	public class Characteristic : ICharacteristic, IDisposable {
 		private readonly CBPeripheral _peripheral;
 		private readonly CBCharacteristic _nativeCharacteristic;
+		private bool _isUpdating;
 
 		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
 			CBAttributePermissions nativePermissions = 0;
@@ -29,8 +30,13 @@ namespace BluetoothLE.iOS {
 			_peripheral = peripheral;
 			_nativeCharacteristic = nativeCharacteristic;
 			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
+			_peripheral.UpdatedNotificationState += PeripheralOnUpdatedNotificationState;
 			_peripheral.WroteCharacteristicValue += UpdatedCharacteristicValue;
 			_id = _nativeCharacteristic.UUID.ToString().ToGuid();
+		}
+
+		private void PeripheralOnUpdatedNotificationState(object sender, CBCharacteristicEventArgs cbCharacteristicEventArgs) {
+			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this));
 		}
 
 		#region ICharacteristic implementation
@@ -40,7 +46,17 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
-		private bool _isUpdating;
+		/// <summary>
+		/// Occurs when the subscription state changed
+		/// </summary>
+		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
+
+		/// <summary>
+		/// Is the charactersitic subscribed to
+		/// </summary>
+		public bool Updating => _isUpdating;
+
+
 		/// <summary>
 		/// Subscribe to the characteristic
 		/// </summary>

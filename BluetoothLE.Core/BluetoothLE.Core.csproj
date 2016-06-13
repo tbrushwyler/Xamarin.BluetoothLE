@@ -34,6 +34,7 @@
   <ItemGroup>
     <Compile Include="CharacteristicPermissionType.cs" />
     <Compile Include="Events\AdvertiseStartEventArgs.cs" />
+    <Compile Include="Events\CharacteristicNotificationStateEventArgs.cs" />
     <Compile Include="Events\PeripheralEventArgs.cs" />
     <Compile Include="Events\RssiUpdateEventArgs.cs" />
     <Compile Include="Events\ServicesDiscoveredEventArgs.cs" />
