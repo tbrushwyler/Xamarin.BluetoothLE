@@ -32,6 +32,8 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
 
+		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicWriteComplete = delegate {};
+
 		/// <summary>
 		/// Occurs when the RSSI is updated
 		/// </summary>
@@ -132,7 +134,7 @@ namespace BluetoothLE.Droid
 		public override void OnCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
 			base.OnCharacteristicWrite(gatt, characteristic, status);
 			var iChar = new Characteristic(characteristic, gatt, this);
-			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
+			CharacteristicWriteComplete(this, new CharacteristicUpdateEventArgs(iChar));
 		}
 
 		public override void OnReadRemoteRssi(BluetoothGatt gatt, int rssi, GattStatus status) {

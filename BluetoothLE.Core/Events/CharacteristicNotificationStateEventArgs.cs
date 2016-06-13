@@ -10,9 +10,10 @@ namespace BluetoothLE.Core.Events {
 	/// </summary>
 	public class CharacteristicNotificationStateEventArgs : EventArgs{
 		public ICharacteristic Characteristic { get; }
-
-		public CharacteristicNotificationStateEventArgs(ICharacteristic characteristic) {
+		public bool Success { get; }
+		public CharacteristicNotificationStateEventArgs(ICharacteristic characteristic, bool success) {
 			Characteristic = characteristic;
+			Success = success;
 		}
 	}
 }

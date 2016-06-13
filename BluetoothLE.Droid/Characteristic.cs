@@ -37,6 +37,7 @@ namespace BluetoothLE.Droid
 
 			if (_callback != null) {
 				_callback.CharacteristicValueUpdated += CharacteristicValueUpdated;
+				_callback.CharacteristicWriteComplete += WriteComplete;
 			}
 		}
 
@@ -48,7 +49,7 @@ namespace BluetoothLE.Droid
 		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated = delegate { };
 
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
-
+		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
 		public bool Updating => _isUpdating;
 
 		/// <summary>
@@ -217,7 +218,7 @@ namespace BluetoothLE.Droid
 					throw new Exception("Unable to set the notification value on the descriptor");
 			}
 			_isUpdating = enable;
-			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this));
+			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, true));
 		}
 
 		/// <summary>
