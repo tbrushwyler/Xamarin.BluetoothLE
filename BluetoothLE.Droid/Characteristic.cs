@@ -16,6 +16,7 @@ namespace BluetoothLE.Droid
 		private readonly BluetoothGattCharacteristic _nativeCharacteristic;
 		private readonly BluetoothGatt _gatt;
 		private readonly GattCallback _callback;
+		private bool _isUpdating;
 
 		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
 			GattPermission gattPermissions = GetNativePermissions(permissions);
@@ -45,6 +46,10 @@ namespace BluetoothLE.Droid
 		/// Occurs when value updated.
 		/// </summary>
 		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated = delegate { };
+
+		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
+
+		public bool Updating => _isUpdating;
 
 		/// <summary>
 		/// Subscribe to the characteristic
@@ -197,8 +202,9 @@ namespace BluetoothLE.Droid
 		#endregion
 
 		private void SetUpdateValue(bool enable) {
+
 			if (!_gatt.SetCharacteristicNotification(_nativeCharacteristic, enable))
-				throw new Exception("Unable to set the notification value on the characteristic");
+			throw new Exception("Unable to set the notification value on the characteristic");
 
 			// hackity-hack-hack
 			System.Threading.Thread.Sleep(100);
@@ -210,6 +216,8 @@ namespace BluetoothLE.Droid
 				if (descriptor != null && !descriptor.SetValue(value.ToArray()))
 					throw new Exception("Unable to set the notification value on the descriptor");
 			}
+			_isUpdating = enable;
+			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this));
 		}
 
 		/// <summary>

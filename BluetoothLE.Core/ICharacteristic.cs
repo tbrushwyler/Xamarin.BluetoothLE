@@ -14,6 +14,8 @@ namespace BluetoothLE.Core
 		/// </summary>
 		event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
+		event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
+
 		/// <summary>
 		/// Gets the unique identifier.
 		/// </summary>
@@ -72,6 +74,8 @@ namespace BluetoothLE.Core
 		/// </summary>
 		/// <value><c>true</c> if this instance can write; otherwise, <c>false</c>.</value>
 		bool CanWrite { get; }
+
+		bool Updating { get; }
 
 		/// <summary>
 		/// Subscribe to the characteristic
