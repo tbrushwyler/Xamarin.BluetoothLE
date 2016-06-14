@@ -8,34 +8,6 @@ namespace BluetoothLE.Core
 	/// </summary>
 	public static class Extensions
 	{
-		/// <summary>
-		/// Write the specified data to a device.
-		/// </summary>
-		/// <param name="device">The device to write the data to.</param>
-		/// <param name="serviceUuid">The service to write the data to.</param>
-		/// <param name="characteristicUuid">The characteristic to write the data to.</param>
-		/// <param name="data">The data to write to the device.</param>
-		public static void Write(this IDevice device, string serviceUuid, string characteristicUuid, byte[] data)
-		{
-			if (device.Services == null || !device.Services.Any())
-				throw new Exception("Device does not have any services");
-
-			var serviceGuid = serviceUuid.ToGuid();
-			var service = device.Services.FirstOrDefault(x => x.Id == serviceGuid);
-			if (service == null)
-				throw new Exception("Device does not have specified service");
-
-			if (service.Characteristics == null || !service.Characteristics.Any())
-				throw new Exception("Specified service does not have any characteristics");
-
-			var characteristicGuid = characteristicUuid.ToGuid();
-			var characteristic = service.Characteristics.FirstOrDefault(x => x.Id == characteristicGuid);
-			if (characteristic == null)
-				throw new Exception("Specified service does not have the specified characteristic");
-
-			characteristic.Write(data);
-		}
-
 		private const string IdFormat = "{0}{1}-0000-1000-8000-00805f9b34fb";
 
 		/// <summary>
