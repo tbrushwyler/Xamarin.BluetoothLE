@@ -109,7 +109,7 @@ namespace BluetoothLE.iOS
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
-		public byte[] Value { get { return _nativeCharacteristic.Value.ToArray(); } }
+		public byte[] Value { get { return _nativeCharacteristic.Value?.ToArray(); } }
 
 		/// <summary>
 		/// Gets the characteristic's value as a string.
