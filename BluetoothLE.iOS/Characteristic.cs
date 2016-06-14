@@ -96,17 +96,20 @@ namespace BluetoothLE.iOS {
 		/// Write the specified data to the characteristic
 		/// </summary>
 		/// <param name="data">Data.</param>
-		public void Write(byte[] data) {
+		public void Write(byte[] data, CharacteristicWriteType writeType) {
 			if (!CanWrite) {
 				throw new InvalidOperationException("Characteristic does not support WRITE");
 			}
 
 			var nsData = NSData.FromArray(data);
-			var writeType = ((Properties & CharacteristicPropertyType.WriteWithoutResponse) > 0) ?
-				CBCharacteristicWriteType.WithoutResponse :
-				CBCharacteristicWriteType.WithResponse;
+			CBCharacteristicWriteType nativeWriteType = CBCharacteristicWriteType.WithResponse;
+			if (writeType == CharacteristicWriteType.WithResponse) {
+				nativeWriteType = CBCharacteristicWriteType.WithResponse;
+			} else if (writeType == CharacteristicWriteType.WithoutResponse) {
+				nativeWriteType = CBCharacteristicWriteType.WithoutResponse;
+			}
 
-			_peripheral.WriteValue(nsData, _nativeCharacteristic, writeType);
+			_peripheral.WriteValue(nsData, _nativeCharacteristic, nativeWriteType);
 		}
 
 		private Guid _id;
