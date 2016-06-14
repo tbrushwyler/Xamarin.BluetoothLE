@@ -52,7 +52,7 @@ namespace BluetoothLE.iOS {
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
 
 		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
-
+		public event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
 		/// <summary>
 		/// Is the charactersitic subscribed to
 		/// </summary>
@@ -213,7 +213,11 @@ namespace BluetoothLE.iOS {
 			var cId = c.UUID;
 			var tId = _nativeCharacteristic.UUID;
 			if (cId == tId) {
-				WriteComplete?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+				if (cbCharacteristicEventArgs.Error != null) {
+					WriteFailed?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+				} else {
+					WriteComplete?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+				}
 			}
 		}
 

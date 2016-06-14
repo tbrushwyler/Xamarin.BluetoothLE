@@ -37,7 +37,9 @@ namespace BluetoothLE.Droid
 
 			if (_callback != null) {
 				_callback.CharacteristicValueUpdated += CharacteristicValueUpdated;
+				// TODO: Change these to send back this characterstic instance
 				_callback.CharacteristicWriteComplete += WriteComplete;
+				_callback.CharacteristicWriteFailed += WriteFailed;
 			}
 		}
 
@@ -50,6 +52,8 @@ namespace BluetoothLE.Droid
 
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
 		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
+		public event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
+
 		public bool Updating => _isUpdating;
 
 		/// <summary>
@@ -99,7 +103,8 @@ namespace BluetoothLE.Droid
 			var success =  _gatt.WriteCharacteristic(_nativeCharacteristic);
 		
 			if (!success) {
-				throw new CharacteristicException("Write failed", CharacteristicException.Code.WriteFailed);
+				WriteFailed?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+				//throw new CharacteristicException("Write failed", CharacteristicException.Code.WriteFailed);
 			}
 		}
 

@@ -16,6 +16,8 @@ namespace BluetoothLE.Core
 
 		event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
 
+		event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
+
 		event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
 
 		/// <summary>
