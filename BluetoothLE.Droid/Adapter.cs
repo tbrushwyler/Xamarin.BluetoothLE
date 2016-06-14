@@ -107,9 +107,11 @@ namespace BluetoothLE.Droid {
 			IsScanning = true;
 
 			var uuids = new List<UUID>();
-			foreach (var id in serviceUuids) {
-				var guid = id.ToGuid();
-				uuids.Add(UUID.FromString(guid.ToString("D")));
+			if (serviceUuids != null) {
+				foreach (var id in serviceUuids) {
+					var guid = id.ToGuid();
+					uuids.Add(UUID.FromString(guid.ToString("D")));
+				}
 			}
 
 			//TODO: Power options, whitelist UUIDS
@@ -263,6 +265,7 @@ namespace BluetoothLE.Droid {
 		#region GattCallback delegate methods
 
 		private void BluetoothGatt_DeviceConnected(object sender, DeviceConnectionEventArgs e) {
+			// TODO: Find device in discovered devices
 			ConnectedDevices.Add(e.Device);
 			DeviceConnected(this, e);
 		}

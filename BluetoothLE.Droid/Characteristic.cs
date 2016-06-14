@@ -184,7 +184,10 @@ namespace BluetoothLE.Droid
 		/// <value>true</value>
 		/// <c>false</c>
 		public bool CanUpdate {
-			get { return (Properties & CharacteristicPropertyType.Notify) > 0; }
+			get {
+				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Indicate) > 0; 
+				
+			}
 		}
 
 		/// <summary>

@@ -186,7 +186,12 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		/// <value>true</value>
 		/// <c>false</c>
-		public bool CanUpdate { get { return (Properties & CharacteristicPropertyType.Notify) > 0; } }
+		public bool CanUpdate {
+			get {
+				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Notify) > 0;  
+				
+			}
+		}
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can write.
