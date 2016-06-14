@@ -83,15 +83,16 @@ namespace BluetoothLE.Droid
 		/// Write the specified data to the characteristic
 		/// </summary>
 		/// <param name="data">Data.</param>
-		public void Write(byte[] data) {
-			if (!CanWrite) 
+		public void Write(byte[] data, CharacteristicWriteType writeType) {
+			if (!CanWrite) {
 				throw new InvalidOperationException("Characteristic does not support WRITE");
-
+			}
+			
 			_nativeCharacteristic.SetValue(data);
-
-			if (Properties.HasFlag(CharacteristicPropertyType.Write)) {
+			
+			if (writeType == CharacteristicWriteType.WithResponse) {
 				_nativeCharacteristic.WriteType = GattWriteType.Default;
-			} else if (Properties.HasFlag(CharacteristicPropertyType.WriteWithoutResponse)){
+			} else if (writeType == CharacteristicWriteType.WithoutResponse){
 				_nativeCharacteristic.WriteType = GattWriteType.NoResponse;
 			}
 
