@@ -33,6 +33,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CharacteristicPermissionType.cs" />
+    <Compile Include="CharacteristicWriteType.cs" />
     <Compile Include="Events\AdvertiseStartEventArgs.cs" />
     <Compile Include="Events\CharacteristicNotificationStateEventArgs.cs" />
     <Compile Include="Events\PeripheralEventArgs.cs" />

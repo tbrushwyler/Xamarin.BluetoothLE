@@ -98,7 +98,7 @@ namespace BluetoothLE.Core
 		/// Write the specified data to the characteristic
 		/// </summary>
 		/// <param name="data">Data.</param>
-		void Write(byte[] data);
+		void Write(byte[] data, CharacteristicWriteType writeType);
 	}
 }
 
