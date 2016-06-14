@@ -33,6 +33,7 @@ namespace BluetoothLE.Droid
 		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
 
 		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicWriteComplete = delegate {};
+		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicWriteFailed = delegate { };
 
 		/// <summary>
 		/// Occurs when the RSSI is updated
@@ -134,7 +135,11 @@ namespace BluetoothLE.Droid
 		public override void OnCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
 			base.OnCharacteristicWrite(gatt, characteristic, status);
 			var iChar = new Characteristic(characteristic, gatt, this);
-			CharacteristicWriteComplete(this, new CharacteristicUpdateEventArgs(iChar));
+			if (status == GattStatus.Success) {
+				CharacteristicWriteComplete(this, new CharacteristicUpdateEventArgs(iChar));
+			} else {
+				CharacteristicWriteFailed(this, new CharacteristicUpdateEventArgs(iChar));
+			}
 		}
 
 		public override void OnReadRemoteRssi(BluetoothGatt gatt, int rssi, GattStatus status) {
