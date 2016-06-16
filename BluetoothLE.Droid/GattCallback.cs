@@ -32,9 +32,8 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
 
-		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicWriteComplete = delegate {};
-		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicWriteFailed = delegate { };
-
+		public event EventHandler<CharacteristicWriteEventArgs> CharacteristicWriteComplete = delegate {};
+		public event EventHandler<DescriptorWriteEventArgs> DescriptorWriteComplete = delegate { };
 		/// <summary>
 		/// Occurs when the RSSI is updated
 		/// </summary>
@@ -127,19 +126,23 @@ namespace BluetoothLE.Droid
 		public override void OnCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic)
 		{
 			base.OnCharacteristicChanged(gatt, characteristic);
-
+			var d = characteristic.GetValue();
+			Debug.WriteLine($"AData({d.Length}): {BitConverter.ToString(d)}");
 			var iChar = new Characteristic(characteristic, gatt, this);
 			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
 		}
 
 		public override void OnCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
+			
 			base.OnCharacteristicWrite(gatt, characteristic, status);
 			var iChar = new Characteristic(characteristic, gatt, this);
-			if (status == GattStatus.Success) {
-				CharacteristicWriteComplete(this, new CharacteristicUpdateEventArgs(iChar));
-			} else {
-				CharacteristicWriteFailed(this, new CharacteristicUpdateEventArgs(iChar));
-			}
+			
+			CharacteristicWriteComplete(this, new CharacteristicWriteEventArgs(status == GattStatus.Success, iChar));
+		}
+
+		public override void OnDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, GattStatus status) {
+			base.OnDescriptorWrite(gatt, descriptor, status);
+			DescriptorWriteComplete(this, new DescriptorWriteEventArgs(status == GattStatus.Success, Guid.ParseExact(descriptor.Characteristic.Uuid.ToString(), "d"), Guid.ParseExact(descriptor.Uuid.ToString(), "d")));
 		}
 
 		public override void OnReadRemoteRssi(BluetoothGatt gatt, int rssi, GattStatus status) {

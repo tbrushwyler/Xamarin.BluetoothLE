@@ -29,6 +29,8 @@ namespace BluetoothLE.Droid {
 
 		private BluetoothGatt _gatt;
 		
+		private List<IDevice> _devices = new List<IDevice>();
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
 		/// </summary>
@@ -41,7 +43,6 @@ namespace BluetoothLE.Droid {
 			_callback.DeviceConnected += BluetoothGatt_DeviceConnected;
 			_callback.DeviceDisconnected += BluetoothGatt_DeviceDisconnected;
 
-			ConnectedDevices = new List<IDevice>();
 			_scanCallback = new ScanCallback();
 			_scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
 
@@ -103,7 +104,6 @@ namespace BluetoothLE.Droid {
 		/// </summary>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
 		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids) {
-			DiscoveredDevices = new List<IDevice>();
 			IsScanning = true;
 
 			var uuids = new List<UUID>();
@@ -252,13 +252,19 @@ namespace BluetoothLE.Droid {
 		/// Gets the discovered devices.
 		/// </summary>
 		/// <value>The discovered devices.</value>
-		public IList<IDevice> DiscoveredDevices { get; set; }
+		public IList<IDevice> DiscoveredDevices {
+			get { return _devices.ToList(); }
+		}
 
 		/// <summary>
 		/// Gets the connected devices.
 		/// </summary>
 		/// <value>The connected devices.</value>
-		public IList<IDevice> ConnectedDevices { get; set; }
+		public IList<IDevice> ConnectedDevices {
+			get {
+				return _devices.Where(x => x.State == DeviceState.Connected).ToList(); 
+			}
+		}
 
 		#endregion
 
@@ -311,7 +317,7 @@ namespace BluetoothLE.Droid {
 
 		private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
 			if (DiscoveredDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
-				DiscoveredDevices.Add(deviceDiscoveredEventArgs.Device);
+				_devices.Add(deviceDiscoveredEventArgs.Device);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
 			}
 		}

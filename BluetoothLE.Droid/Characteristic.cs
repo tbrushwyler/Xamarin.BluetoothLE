@@ -2,17 +2,16 @@
 using BluetoothLE.Core;
 using Android.Bluetooth;
 using System.Linq;
+using System.Threading;
 using BluetoothLE.Core.Events;
 using BluetoothLE.Core.Exceptions;
 using Java.Util;
 
-namespace BluetoothLE.Droid
-{
+namespace BluetoothLE.Droid {
 	/// <summary>
 	/// Concrete implmentation of <see cref="BluetoothLE.Core.ICharacteristic" /> interface
 	/// </summary>
-	public class Characteristic : ICharacteristic
-	{
+	public class Characteristic : ICharacteristic {
 		private readonly BluetoothGattCharacteristic _nativeCharacteristic;
 		private readonly BluetoothGatt _gatt;
 		private readonly GattCallback _callback;
@@ -20,7 +19,7 @@ namespace BluetoothLE.Droid
 
 		public Characteristic(Guid uuid, CharacterisiticPermissionType permissions, CharacteristicPropertyType properties) {
 			GattPermission gattPermissions = GetNativePermissions(permissions);
-			
+
 			_nativeCharacteristic = new BluetoothGattCharacteristic(UUID.FromString(uuid.ToString()), (GattProperty)properties, gattPermissions);
 		}
 
@@ -36,10 +35,9 @@ namespace BluetoothLE.Droid
 			_callback = gattCallback;
 
 			if (_callback != null) {
-				_callback.CharacteristicValueUpdated += CharacteristicValueUpdated;
-				// TODO: Change these to send back this characterstic instance
-				_callback.CharacteristicWriteComplete += WriteComplete;
-				_callback.CharacteristicWriteFailed += WriteFailed;
+				_callback.CharacteristicValueUpdated += OnCharacteristicValueUpdated;
+				_callback.CharacteristicWriteComplete += OnCharacteristicWriteComplete;
+				_callback.DescriptorWriteComplete += OnDescriptorWriteComplete;
 			}
 		}
 
@@ -51,10 +49,32 @@ namespace BluetoothLE.Droid
 		public event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated = delegate { };
 
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
-		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
-		public event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
+
+		public event EventHandler<CharacteristicWriteEventArgs> WriteComplete;
+
+		public event EventHandler<DescriptorWriteEventArgs> DescriptorWriteComplete;
 
 		public bool Updating => _isUpdating;
+
+		public void SetIndication(bool enable) {
+			if (_nativeCharacteristic.Descriptors.Count > 0) {
+				var set = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
+				if (!set) {
+					//DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
+				}
+
+				string descriptorId = "2902".ToGuid().ToString();
+				var descriptor = _nativeCharacteristic.Descriptors.FirstOrDefault(x => x.Uuid.ToString() == descriptorId);
+				if (descriptor != null) {
+					var value = (enable) ?  BluetoothGattDescriptor.EnableIndicationValue : BluetoothGattDescriptor.DisableNotificationValue;
+					descriptor.SetValue(value.ToArray());
+					var write = _gatt.WriteDescriptor(descriptor);
+					if (!write) {
+						//DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
+					}
+				}
+			}
+		}
 
 		/// <summary>
 		/// Subscribe to the characteristic
@@ -91,19 +111,19 @@ namespace BluetoothLE.Droid
 			if (!CanWrite) {
 				throw new InvalidOperationException("Characteristic does not support WRITE");
 			}
-			
+
 			_nativeCharacteristic.SetValue(data);
-			
+
 			if (writeType == CharacteristicWriteType.WithResponse) {
 				_nativeCharacteristic.WriteType = GattWriteType.Default;
-			} else if (writeType == CharacteristicWriteType.WithoutResponse){
+			} else if (writeType == CharacteristicWriteType.WithoutResponse) {
 				_nativeCharacteristic.WriteType = GattWriteType.NoResponse;
 			}
 
-			var success =  _gatt.WriteCharacteristic(_nativeCharacteristic);
-		
+			var success = _gatt.WriteCharacteristic(_nativeCharacteristic);
+
 			if (!success) {
-				WriteFailed?.Invoke(this, new CharacteristicUpdateEventArgs(this));
+				WriteComplete?.Invoke(this, new CharacteristicWriteEventArgs(false, this));
 				//throw new CharacteristicException("Write failed", CharacteristicException.Code.WriteFailed);
 			}
 		}
@@ -160,7 +180,7 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		/// <value>The characteristic's properties.</value>
 		public CharacteristicPropertyType Properties {
-			get { return (CharacteristicPropertyType) (int) _nativeCharacteristic.Properties; }
+			get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; }
 		}
 
 		public CharacterisiticPermissionType Permissions {
@@ -185,8 +205,8 @@ namespace BluetoothLE.Droid
 		/// <c>false</c>
 		public bool CanUpdate {
 			get {
-				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Indicate) > 0; 
-				
+				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Indicate) > 0;
+
 			}
 		}
 
@@ -203,31 +223,45 @@ namespace BluetoothLE.Droid
 
 		#region GattCallback delegate methods
 
-		private void  CharacteristicValueUpdated(object sender, CharacteristicUpdateEventArgs e) {
+		private void OnCharacteristicValueUpdated(object sender, CharacteristicUpdateEventArgs e) {
 			if (e.Characteristic.Id == this.Id) {
 				ValueUpdated(this, e);
+			}
+		}
+
+		private void OnCharacteristicWriteComplete(object sender, CharacteristicWriteEventArgs characteristicUpdateEventArgs) {
+			if (characteristicUpdateEventArgs.Characteristic.Id == this.Id) {
+				WriteComplete?.Invoke(this, new CharacteristicWriteEventArgs(true, this));
+			}
+		}
+
+		private void OnDescriptorWriteComplete(object sender, DescriptorWriteEventArgs descriptorWriteEventArgs) {
+			if (descriptorWriteEventArgs.CharacteristicId == this.Id) {
+				DescriptorWriteComplete?.Invoke(this, descriptorWriteEventArgs);
 			}
 		}
 
 		#endregion
 
 		private void SetUpdateValue(bool enable) {
-
-			if (!_gatt.SetCharacteristicNotification(_nativeCharacteristic, enable))
-			throw new Exception("Unable to set the notification value on the characteristic");
-
-			// hackity-hack-hack
-			System.Threading.Thread.Sleep(100);
-
+			var success = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
+			if (!success) {
+				//NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, false));
+			}
+			
 			if (_nativeCharacteristic.Descriptors.Count > 0) {
 				const string descriptorId = "00002902-0000-1000-8000-00805f9b34fb";
 				var value = enable ? BluetoothGattDescriptor.EnableNotificationValue : BluetoothGattDescriptor.DisableNotificationValue;
 				var descriptor = _nativeCharacteristic.Descriptors.FirstOrDefault(x => x.Uuid.ToString() == descriptorId);
-				if (descriptor != null && !descriptor.SetValue(value.ToArray()))
+				if (descriptor != null && !descriptor.SetValue(value.ToArray())) {
 					throw new Exception("Unable to set the notification value on the descriptor");
+				}
+				var dSuccess =_gatt.WriteDescriptor(descriptor);
+				if (!dSuccess) {
+					//NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, false));
+				}
 			}
 			_isUpdating = enable;
-			NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, true));
 		}
 
 		/// <summary>

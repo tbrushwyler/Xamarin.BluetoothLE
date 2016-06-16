@@ -68,7 +68,9 @@ namespace BluetoothLE.Droid {
 			Services.Clear();
 			foreach (var s in _gatt.Services) {
 				var service = new Service(s, _gatt, _callback);
-				Services.Add(service);
+				if (Services.All(x => x.Id != service.Id)) {
+					Services.Add(service);
+				}
 			}
 			ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services));
 		}

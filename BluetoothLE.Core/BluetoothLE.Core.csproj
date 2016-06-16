@@ -36,6 +36,8 @@
     <Compile Include="CharacteristicWriteType.cs" />
     <Compile Include="Events\AdvertiseStartEventArgs.cs" />
     <Compile Include="Events\CharacteristicNotificationStateEventArgs.cs" />
+    <Compile Include="Events\CharacteristicWriteEventArgs.cs" />
+    <Compile Include="Events\DescriptorWriteEventArgs.cs" />
     <Compile Include="Events\PeripheralEventArgs.cs" />
     <Compile Include="Events\RssiUpdateEventArgs.cs" />
     <Compile Include="Events\ServicesDiscoveredEventArgs.cs" />

@@ -29,9 +29,11 @@ namespace BluetoothLE.iOS {
 		public Characteristic(CBPeripheral peripheral, CBCharacteristic nativeCharacteristic) {
 			_peripheral = peripheral;
 			_nativeCharacteristic = nativeCharacteristic;
-			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
+			_peripheral.UpdatedCharacterteristicValue += OnUpdatedCharacteristicValue;
 			_peripheral.UpdatedNotificationState += PeripheralOnUpdatedNotificationState;
-			_peripheral.WroteCharacteristicValue += WroteCharacteristicValue;
+			_peripheral.WroteCharacteristicValue += OnWroteCharacteristicValue;
+			_peripheral.WroteDescriptorValue += OnWroteDescriptorValue;
+
 			_id = _nativeCharacteristic.UUID.ToString().ToGuid();
 		}
 
@@ -51,8 +53,10 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
 
-		public event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
-		public event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
+		public event EventHandler<CharacteristicWriteEventArgs> WriteComplete;
+
+		public event EventHandler<DescriptorWriteEventArgs> DescriptorWriteComplete;
+
 		/// <summary>
 		/// Is the charactersitic subscribed to
 		/// </summary>
@@ -75,11 +79,19 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public void StopUpdates() {
 			if (CanUpdate) {
-				_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
+				_peripheral.UpdatedCharacterteristicValue -= OnUpdatedCharacteristicValue;
 				_peripheral.SetNotifyValue(false, _nativeCharacteristic);
 			}
 
 			_isUpdating = false;
+		}
+
+		public void SetIndication(bool enable) {
+			if (enable) {
+				StartUpdates();
+			} else {
+				StopUpdates();
+			}
 		}
 
 		/// <summary>
@@ -204,7 +216,7 @@ namespace BluetoothLE.iOS {
 
 		#region CBPeripheral delegate methods
 
-		private void UpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e) {
+		private void OnUpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e) {
 			var c = e.Characteristic;
 			var cId = c.UUID;
 			var tId = _nativeCharacteristic.UUID;
@@ -213,17 +225,18 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
-		private void WroteCharacteristicValue(object sender, CBCharacteristicEventArgs cbCharacteristicEventArgs) {
+		private void OnWroteCharacteristicValue(object sender, CBCharacteristicEventArgs cbCharacteristicEventArgs) {
 			var c = cbCharacteristicEventArgs.Characteristic;
 			var cId = c.UUID;
 			var tId = _nativeCharacteristic.UUID;
 			if (cId == tId) {
-				if (cbCharacteristicEventArgs.Error != null) {
-					WriteFailed?.Invoke(this, new CharacteristicUpdateEventArgs(this));
-				} else {
-					WriteComplete?.Invoke(this, new CharacteristicUpdateEventArgs(this));
-				}
+				WriteComplete?.Invoke(this, new CharacteristicWriteEventArgs(cbCharacteristicEventArgs.Error == null, this));
 			}
+		}
+
+		private void OnWroteDescriptorValue(object sender, CBDescriptorEventArgs cbDescriptorEventArgs) {
+			// Get value;
+			DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(cbDescriptorEventArgs.Error == null, cbDescriptorEventArgs.Descriptor.Characteristic.UUID.ToString().ToGuid(), cbDescriptorEventArgs.Descriptor.UUID.ToString().ToGuid()));
 		}
 
 		#endregion
@@ -238,7 +251,7 @@ namespace BluetoothLE.iOS {
 		/// calling <see cref="Dispose"/>, you must release all references to the <see cref="BluetoothLE.iOS.Characteristic"/>
 		/// so the garbage collector can reclaim the memory that the <see cref="BluetoothLE.iOS.Characteristic"/> was occupying.</remarks>
 		public void Dispose() {
-			_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
+			_peripheral.UpdatedCharacterteristicValue -= OnUpdatedCharacteristicValue;
 		}
 
 		#endregion

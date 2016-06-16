@@ -14,11 +14,11 @@ namespace BluetoothLE.Core
 		/// </summary>
 		event EventHandler<CharacteristicUpdateEventArgs> ValueUpdated;
 
-		event EventHandler<CharacteristicUpdateEventArgs> WriteComplete;
-
-		event EventHandler<CharacteristicUpdateEventArgs> WriteFailed;
+		event EventHandler<CharacteristicWriteEventArgs> WriteComplete;
 
 		event EventHandler<CharacteristicNotificationStateEventArgs> NotificationStateChanged;
+
+		event EventHandler<DescriptorWriteEventArgs> DescriptorWriteComplete;
 
 		/// <summary>
 		/// Gets the unique identifier.
@@ -90,6 +90,8 @@ namespace BluetoothLE.Core
 		/// Unsubscribe from the characteristic
 		/// </summary>
 		void StopUpdates();
+
+		void SetIndication(bool enable);
 
 		/// <summary>
 		/// Read the characteristic's value
