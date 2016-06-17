@@ -5,34 +5,32 @@ using BluetoothLE.Core.Events;
 using Android.Util;
 using System.Diagnostics;
 
-namespace BluetoothLE.Droid
-{
+namespace BluetoothLE.Droid {
 	/// <summary>
 	/// Gatt callback to handle Gatt events.
 	/// </summary>
-	public class GattCallback : BluetoothGattCallback
-	{
+	public class GattCallback : BluetoothGattCallback {
 		/// <summary>
 		/// Occurs when device connected.
 		/// </summary>
-		public event EventHandler<DeviceConnectionEventArgs> DeviceConnected = delegate {};
+		public event EventHandler<DeviceConnectionEventArgs> DeviceConnected = delegate { };
 
 		/// <summary>
 		/// Occurs when device disconnected.
 		/// </summary>
-		public event EventHandler<DeviceConnectionEventArgs> DeviceDisconnected = delegate {};
+		public event EventHandler<DeviceConnectionEventArgs> DeviceDisconnected = delegate { };
 
 		/// <summary>
 		/// Occurs when services discovered.
 		/// </summary>
-		public event EventHandler ServicesDiscovered = delegate {};
+		public event EventHandler ServicesDiscovered = delegate { };
 
 		/// <summary>
 		/// Occurs when characteristic value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate {};
+		public event EventHandler<CharacteristicUpdateEventArgs> CharacteristicValueUpdated = delegate { };
 
-		public event EventHandler<CharacteristicWriteEventArgs> CharacteristicWriteComplete = delegate {};
+		public event EventHandler<CharacteristicWriteEventArgs> CharacteristicWriteComplete = delegate { };
 		public event EventHandler<DescriptorWriteEventArgs> DescriptorWriteComplete = delegate { };
 		/// <summary>
 		/// Occurs when the RSSI is updated
@@ -46,38 +44,31 @@ namespace BluetoothLE.Droid
 		/// <param name="gatt">Gatt.</param>
 		/// <param name="status">Status.</param>
 		/// <param name="newState">New state.</param>
-		public override void OnConnectionStateChange(BluetoothGatt gatt, GattStatus status, ProfileState newState)
-		{
+		public override void OnConnectionStateChange(BluetoothGatt gatt, GattStatus status, ProfileState newState) {
 			base.OnConnectionStateChange(gatt, status, newState);
 
 			if (status != GattStatus.Success)
 				return;
-            
-			var device = new Device(gatt.Device, gatt, this, 0);
-			switch (newState)
-			{
-				case ProfileState.Disconnected:
-                    device.State = DeviceState.Disconnected;
 
-                    try
-                    {
-                        gatt.Close();
-                        gatt = null;
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine("Unable to close connection to gatt. Exception: {0}", ex.Message);
-                    }
-                    finally
-                    {
-                        DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
-                    }
+			var device = new Device(gatt.Device, gatt, this, 0);
+			switch (newState) {
+				case ProfileState.Disconnected:
+					device.State = DeviceState.Disconnected;
+
+					try {
+						gatt.Close();
+						gatt = null;
+					} catch (Exception ex) {
+						Debug.WriteLine("Unable to close connection to gatt. Exception: {0}", ex.Message);
+					} finally {
+						DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
+					}
 
 					break;
 				case ProfileState.Connected:
 					device.State = DeviceState.Connected;
-					
-                    DeviceConnected(this, new DeviceConnectionEventArgs(device));   
+
+					DeviceConnected(this, new DeviceConnectionEventArgs(device));
 					break;
 			}
 		}
@@ -87,8 +78,7 @@ namespace BluetoothLE.Droid
 		/// </summary>
 		/// <param name="gatt">Gatt.</param>
 		/// <param name="status">Status.</param>
-		public override void OnServicesDiscovered(BluetoothGatt gatt, GattStatus status)
-		{
+		public override void OnServicesDiscovered(BluetoothGatt gatt, GattStatus status) {
 			base.OnServicesDiscovered(gatt, status);
 
 			if (status != GattStatus.Success)
@@ -103,8 +93,7 @@ namespace BluetoothLE.Droid
 		/// <param name="gatt">Gatt.</param>
 		/// <param name="characteristic">Characteristic.</param>
 		/// <param name="status">Status.</param>
-		public override void OnCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status)
-		{
+		public override void OnCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
 			base.OnCharacteristicRead(gatt, characteristic, status);
 
 			if (status != GattStatus.Success)
@@ -123,20 +112,17 @@ namespace BluetoothLE.Droid
 		/// <since version="Added in API level 18"></since>
 		/// <param name="gatt">Gatt.</param>
 		/// <param name="characteristic">Characteristic.</param>
-		public override void OnCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic)
-		{
+		public override void OnCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
 			base.OnCharacteristicChanged(gatt, characteristic);
-			var d = characteristic.GetValue();
-			Debug.WriteLine($"AData({d.Length}): {BitConverter.ToString(d)}");
+
 			var iChar = new Characteristic(characteristic, gatt, this);
 			CharacteristicValueUpdated(this, new CharacteristicUpdateEventArgs(iChar));
 		}
 
 		public override void OnCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, GattStatus status) {
-			
 			base.OnCharacteristicWrite(gatt, characteristic, status);
 			var iChar = new Characteristic(characteristic, gatt, this);
-			
+			Debug.WriteLine($"OnCharacteristicWrite {characteristic.Uuid}");
 			CharacteristicWriteComplete(this, new CharacteristicWriteEventArgs(status == GattStatus.Success, iChar));
 		}
 
