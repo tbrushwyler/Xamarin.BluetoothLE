@@ -20,7 +20,7 @@ namespace BluetoothLE.iOS {
 		private readonly CBCentralManager _central;
 		private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
-
+		private readonly List<IDevice> _devices = new List<IDevice>();
 		private static Adapter _current;
 		private Task _startAdvertise;
 
@@ -44,7 +44,6 @@ namespace BluetoothLE.iOS {
 			_central.DisconnectedPeripheral += DisconnectedPeripheral;
 			_central.FailedToConnectPeripheral += FailedToConnectPeripheral;
 
-			ConnectedDevices = new List<IDevice>();
 			_stateChanged = new AutoResetEvent(false);
 
 			_current = this;
@@ -158,7 +157,6 @@ namespace BluetoothLE.iOS {
 				uuids.Add(CBUUID.FromString(guid));
 			}
 
-			DiscoveredDevices = new List<IDevice>();
 			IsScanning = true;
 
 			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = continuousScanning };
@@ -257,13 +255,19 @@ namespace BluetoothLE.iOS {
 		/// Gets the discovered devices.
 		/// </summary>
 		/// <value>The discovered devices.</value>
-		public IList<IDevice> DiscoveredDevices { get; set; }
+		public IList<IDevice> DiscoveredDevices {
+			get { return _devices.ToList(); }
+		}
 
 		/// <summary>
 		/// Gets the connected devices.
 		/// </summary>
 		/// <value>The connected devices.</value>
-		public IList<IDevice> ConnectedDevices { get; set; }
+		public IList<IDevice> ConnectedDevices {
+			get {
+				return _devices.Where(x => x.State == DeviceState.Connected).ToList();
+			}
+		}
 
 		#endregion
 
@@ -279,13 +283,12 @@ namespace BluetoothLE.iOS {
 			if (addedDevice == null) {
 				// New Device
 				var device = new Device(e.Peripheral, e.RSSI);
-				DiscoveredDevices.Add(device);
+				_devices.Add(device);
 				device.AdvertismentData = ProcessData(e.AdvertisementData);
 				device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			} else {
 				var device = (Device)addedDevice;
-
 				device.UpdateRssi(e.RSSI);
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
 			}
@@ -347,7 +350,6 @@ namespace BluetoothLE.iOS {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
 			if (ConnectedDevices.All(x => x.Id != deviceId)) {
 				var device = new Device(e.Peripheral);
-				ConnectedDevices.Add(device);
 				DeviceConnected(this, new DeviceConnectionEventArgs(device));
 			}
 		}
@@ -357,7 +359,6 @@ namespace BluetoothLE.iOS {
 			var connectedDevice = ConnectedDevices.FirstOrDefault(x => x.Id == deviceId);
 
 			if (connectedDevice != null) {
-				ConnectedDevices.Remove(connectedDevice);
 				DeviceDisconnected(this, new DeviceConnectionEventArgs(connectedDevice));
 			}
 		}

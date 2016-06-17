@@ -271,8 +271,6 @@ namespace BluetoothLE.Droid {
 		#region GattCallback delegate methods
 
 		private void BluetoothGatt_DeviceConnected(object sender, DeviceConnectionEventArgs e) {
-			// TODO: Find device in discovered devices
-			ConnectedDevices.Add(e.Device);
 			DeviceConnected(this, e);
 		}
 
@@ -283,10 +281,7 @@ namespace BluetoothLE.Droid {
 		}
 
 		private void DisconnectDevice(Guid id) {
-			var connDevice = ConnectedDevices.FirstOrDefault(x => x.Id == id);
-			if (connDevice != null) {
-				ConnectedDevices.Remove(connDevice);
-			}
+			
 		}
 
 		#endregion
