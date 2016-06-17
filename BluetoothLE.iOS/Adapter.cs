@@ -348,19 +348,14 @@ namespace BluetoothLE.iOS {
 
 		private void ConnectedPeripheral(object sender, CBPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			if (ConnectedDevices.All(x => x.Id != deviceId)) {
-				var device = new Device(e.Peripheral);
-				DeviceConnected(this, new DeviceConnectionEventArgs(device));
-			}
+			var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			DeviceConnected(this, new DeviceConnectionEventArgs(device));
 		}
 
 		private void DisconnectedPeripheral(object sender, CBPeripheralErrorEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			var connectedDevice = ConnectedDevices.FirstOrDefault(x => x.Id == deviceId);
-
-			if (connectedDevice != null) {
-				DeviceDisconnected(this, new DeviceConnectionEventArgs(connectedDevice));
-			}
+			var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
 		}
 
 		private void FailedToConnectPeripheral(object sender, CBPeripheralErrorEventArgs e) {
