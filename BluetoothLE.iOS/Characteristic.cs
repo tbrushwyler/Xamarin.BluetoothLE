@@ -122,6 +122,10 @@ namespace BluetoothLE.iOS {
 			}
 
 			_peripheral.WriteValue(nsData, _nativeCharacteristic, nativeWriteType);
+			
+			if (writeType == CharacteristicWriteType.WithoutResponse){
+				WriteComplete?.Invoke(this, new CharacteristicWriteEventArgs(true, this));
+			}
 		}
 
 		private Guid _id;
