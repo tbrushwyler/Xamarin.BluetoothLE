@@ -50,10 +50,15 @@ namespace BluetoothLE.Core
 		/// <value>The device's services</value>
 		IList<IService> Services { get; }
 
-		/// <summary>
-		/// Initiate a service discovery on the device
+        /// <summary>
+		/// Gets scanRecord for the device.
 		/// </summary>
-		void DiscoverServices();
+        byte[] scanRecord { get; }
+
+        /// <summary>
+        /// Initiate a service discovery on the device
+        /// </summary>
+        void DiscoverServices();
 
 		/// <summary>
 		/// Discconnect from the device.
