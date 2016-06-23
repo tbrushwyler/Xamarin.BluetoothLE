@@ -193,7 +193,10 @@ namespace BluetoothLE.iOS {
 			await Task.Delay(ConnectionTimeout);
 
 			if (ConnectedDevices.All(x => x.Id != device.Id)) {
-				_central.CancelPeripheralConnection(peripheral);
+                if (peripheral != null) {
+                    _central.CancelPeripheralConnection(peripheral);
+                }
+                
 				var args = new DeviceConnectionEventArgs(device) {
 					ErrorMessage = "The device connection timed out."
 				};
