@@ -199,7 +199,7 @@ namespace BluetoothLE.Droid
             var deviceId = Device.DeviceIdFromAddress(bleDevice.Address);
             if (DiscoveredDevices.All(x => x.Id != deviceId))
             {
-                var device = new Device(bleDevice, null, null, rssi);
+                var device = new Device(bleDevice, null, null, rssi, scanRecord);
                 DiscoveredDevices.Add(device);
                 DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
             }

@@ -45,9 +45,9 @@ namespace BluetoothLE.Droid
 
 			if (status != GattStatus.Success)
 				return;
-            
-			var device = new Device(gatt.Device, gatt, this, 0);
-			switch (newState)
+
+            var device = new Device(gatt.Device, gatt, this, 0, null);
+            switch (newState)
 			{
 				case ProfileState.Disconnected:
                     device.State = DeviceState.Disconnected;
