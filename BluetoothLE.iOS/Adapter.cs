@@ -11,6 +11,7 @@ using BluetoothLE.Core.Events;
 using CoreFoundation;
 using Foundation;
 using UIKit;
+using System.Diagnostics;
 
 namespace BluetoothLE.iOS {
 	/// <summary>
@@ -37,7 +38,7 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public Adapter() {
 			_central = new CBCentralManager();
-
+			
 			_central.DiscoveredPeripheral += DiscoveredPeripheral;
 			_central.UpdatedState += UpdatedState;
 			_central.ConnectedPeripheral += ConnectedPeripheral;
@@ -193,7 +194,10 @@ namespace BluetoothLE.iOS {
 			await Task.Delay(ConnectionTimeout);
 
 			if (ConnectedDevices.All(x => x.Id != device.Id)) {
-				_central.CancelPeripheralConnection(peripheral);
+				if (peripheral != null && peripheral.IsConnected){
+					_central.CancelPeripheralConnection(peripheral);
+				}
+				
 				var args = new DeviceConnectionEventArgs(device) {
 					ErrorMessage = "The device connection timed out."
 				};
