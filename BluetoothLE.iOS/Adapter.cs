@@ -193,7 +193,10 @@ namespace BluetoothLE.iOS {
 			await Task.Delay(ConnectionTimeout);
 
 			if (ConnectedDevices.All(x => x.Id != device.Id)) {
-				_central.CancelPeripheralConnection(peripheral);
+                if (peripheral != null) {
+                    _central.CancelPeripheralConnection(peripheral);
+                }
+                
 				var args = new DeviceConnectionEventArgs(device) {
 					ErrorMessage = "The device connection timed out."
 				};
@@ -208,7 +211,9 @@ namespace BluetoothLE.iOS {
 		/// <param name="device">The device.</param>
 		public void DisconnectDevice(IDevice device) {
 			var peripheral = device.NativeDevice as CBPeripheral;
-			_central.CancelPeripheralConnection(peripheral);
+		    if (peripheral != null) {
+		        _central.CancelPeripheralConnection(peripheral);
+		    }
 		}
 
 		public async void StartAdvertising(string localName, List<IService> services) {
