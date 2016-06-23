@@ -212,7 +212,9 @@ namespace BluetoothLE.iOS {
 		/// <param name="device">The device.</param>
 		public void DisconnectDevice(IDevice device) {
 			var peripheral = device.NativeDevice as CBPeripheral;
-			_central.CancelPeripheralConnection(peripheral);
+		    if (peripheral != null) {
+		        _central.CancelPeripheralConnection(peripheral);
+		    }
 		}
 
 		public async void StartAdvertising(string localName, List<IService> services) {
