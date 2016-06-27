@@ -38,16 +38,16 @@ namespace BluetoothLE.Core {
 		/// </summary>
 		event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess;
 
-		/// <summary>
-		/// Occurs when scan timeout elapsed.
-		/// </summary>
-		event EventHandler ScanTimeoutElapsed;
+	    /// <summary>
+	    /// Occurs when scan timeout elapsed.
+	    /// </summary>
+	    event EventHandler<DevicesDiscoveredEventArgs> ScanTimeoutElapsed;
 
-		/// <summary>
-		/// Gets a value indicating whether this instance is scanning.
-		/// </summary>
-		/// <value><c>true</c> if this instance is scanning; otherwise, <c>false</c>.</value>
-		bool IsScanning { get; }
+        /// <summary>
+        /// Gets a value indicating whether this instance is scanning.
+        /// </summary>
+        /// <value><c>true</c> if this instance is scanning; otherwise, <c>false</c>.</value>
+        bool IsScanning { get; }
 
 		/// <summary>
 		/// Gets or sets the amount of time to scan for devices.

@@ -31,6 +31,7 @@ namespace BluetoothLE.Droid {
         private BluetoothGatt _gatt;
 
         private List<IDevice> _devices = new List<IDevice>();
+
         private CancellationTokenSource _scanCancellationToken;
         /// <summary>
         /// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
@@ -81,7 +82,7 @@ namespace BluetoothLE.Droid {
         /// <summary>
         /// Occurs when scan timeout elapsed.
         /// </summary>
-        public event EventHandler ScanTimeoutElapsed = delegate { };
+        public event EventHandler<DevicesDiscoveredEventArgs> ScanTimeoutElapsed = delegate { };
 
         /// <summary>
         /// Occurs when advertising start fails
@@ -120,8 +121,9 @@ namespace BluetoothLE.Droid {
                 }
             }
 
+            // Clear discover list
+            _devices = new List<IDevice>();
 
-            _devices.RemoveAll(x => x.State != DeviceState.Connected && x.State != DeviceState.Connecting);
             _adapter.BluetoothLeScanner.StartScan(_scanCallback);
             
             _scanCancellationToken = new CancellationTokenSource();
@@ -134,7 +136,7 @@ namespace BluetoothLE.Droid {
 
             if (IsScanning) {
                 StopScanningForDevices();
-                ScanTimeoutElapsed(this, EventArgs.Empty);
+                ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_devices));
             }
         }
 
@@ -318,7 +320,7 @@ namespace BluetoothLE.Droid {
         }
 
         private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
-            if (DiscoveredDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+            if (_devices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
                 _devices.Add(deviceDiscoveredEventArgs.Device);
                 DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
             }
