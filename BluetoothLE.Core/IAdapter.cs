@@ -88,7 +88,7 @@ namespace BluetoothLE.Core {
 		/// Stop scanning for devices.
 		/// </summary>
 		void StopScanningForDevices();
-
+		
 		/// <summary>
 		/// Connect to a device.
 		/// </summary>
@@ -100,7 +100,6 @@ namespace BluetoothLE.Core {
 		/// </summary>
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
-
 
 		void StartAdvertising(string localName, List<IService> services);
 

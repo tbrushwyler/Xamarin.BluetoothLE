@@ -89,6 +89,19 @@ namespace BluetoothLE.iOS {
 			}
 		}
 
+		protected override void Dispose (bool disposing) {
+			base.Dispose (disposing);
+			if (!disposing){
+				if (_central != null){
+					_central.DiscoveredPeripheral -= DiscoveredPeripheral;
+					_central.UpdatedState -= UpdatedState;
+					_central.ConnectedPeripheral -= ConnectedPeripheral;
+					_central.DisconnectedPeripheral -= DisconnectedPeripheral;
+					_central.FailedToConnectPeripheral -= FailedToConnectPeripheral;
+				}
+			}
+		}
+
 		#region IAdapter implementation
 
 		/// <summary>
@@ -152,7 +165,7 @@ namespace BluetoothLE.iOS {
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
 		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids) {
 			await WaitForState(CBCentralManagerState.PoweredOn);
-
+			Debug.WriteLine ("StartScanningForDevices");
 			var uuids = new List<CBUUID>();
 			foreach (var guid in serviceUuids) {
 				uuids.Add(CBUUID.FromString(guid));
@@ -161,7 +174,7 @@ namespace BluetoothLE.iOS {
 			IsScanning = true;
 
 			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = continuousScanning };
-
+			_devices.Clear ();
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
 			if (continuousScanning == false) {
@@ -179,7 +192,11 @@ namespace BluetoothLE.iOS {
 		/// Stop scanning for devices.
 		/// </summary>
 		public void StopScanningForDevices() {
-			IsScanning = false;
+			Debug.WriteLine ("StopScanningForDevices");
+			if (_central.IsScanning){
+				IsScanning = false;
+			}
+			
 			_central.StopScan();
 		}
 
