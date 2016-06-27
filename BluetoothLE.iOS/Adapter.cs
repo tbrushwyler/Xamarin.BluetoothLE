@@ -22,6 +22,7 @@ namespace BluetoothLE.iOS {
 		private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
 		private List<IDevice> _devices = new List<IDevice>();
+		private List<IDevice> _discoveringDevices = new List<IDevice>();
 		private static Adapter _current;
 		private Task _startAdvertise;
 	    private CancellationTokenSource _scanCancellationToken;
@@ -175,11 +176,8 @@ namespace BluetoothLE.iOS {
 			IsScanning = true;
 
 			var options = new PeripheralScanningOptions() {  };
-			
+			_discoveringDevices = new List<IDevice> ();
 			_central.ScanForPeripherals(uuids.ToArray(), options);
-
-            // Clear discover list
-            _devices = new List<IDevice>();
 
             // Wait for the timeout
             _scanCancellationToken = new CancellationTokenSource();
@@ -192,6 +190,10 @@ namespace BluetoothLE.iOS {
 
 			if (IsScanning) {
 				StopScanningForDevices();
+				var currentDevices = _devices.Select (x => x.Id);
+				var newDevices = _discoveringDevices.Select (x => x.Id);
+				var removeList = currentDevices.Except (newDevices);
+				_devices.RemoveAll (x => removeList.Any (g => g == x.Id));
                 ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_devices));
             }
 		}
@@ -311,12 +313,17 @@ namespace BluetoothLE.iOS {
 		private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
 
-            if (_devices.All(x => x.Id != deviceId)) {
+            if (_discoveringDevices.All(x => x.Id != deviceId)) {
                 var device = new Device(e.Peripheral, e.RSSI);
-                _devices.Add(device);
+                _discoveringDevices.Add(device);
                 device.AdvertismentData = ProcessData(e.AdvertisementData);
                 device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
-                DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
+                
+                
+				if (_devices.All(x => x.Id != device.Id)){
+					_devices.Add (device);
+				}
+				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
             }
             //var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
 
