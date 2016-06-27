@@ -24,7 +24,7 @@ namespace BluetoothLE.iOS {
 		private readonly List<IDevice> _devices = new List<IDevice>();
 		private static Adapter _current;
 		private Task _startAdvertise;
-	    private readonly CancellationTokenSource _scanCancellationToken;
+	    private CancellationTokenSource _scanCancellationToken;
 
 	    /// <summary>
 		/// Gets the current Adpater instance
@@ -175,11 +175,21 @@ namespace BluetoothLE.iOS {
 			IsScanning = true;
 
 			var options = new PeripheralScanningOptions() {  };
-			_devices.Clear ();
+			
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
 				// Wait for the timeout
-			await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
+			_scanCancellationToken = new CancellationTokenSource();
+            try {
+                await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
+                _scanCancellationToken = null;
+            } catch (Exception) {
+                // ignored
+            }
+            
+            if (!_scanCancellationToken.IsCancellationRequested){
+            	_devices.RemoveAll(x => x.State != DeviceState.Connected && x.State != DeviceState.Connecting);
+			}
 
 			if (IsScanning) {
 				StopScanningForDevices();
@@ -192,11 +202,14 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public void StopScanningForDevices() {
 			Debug.WriteLine ("StopScanningForDevices");
-			if (_central.IsScanning){
-				IsScanning = false;
-                _scanCancellationToken.Cancel();
-			}
-			
+			if (IsScanning && _scanCancellationToken != null) {
+                try {
+                    _scanCancellationToken.Cancel();
+                } catch (TaskCanceledException e) {
+                    // ignored
+                }
+            }
+            IsScanning = false;
 			_central.StopScan();
 		}
 
