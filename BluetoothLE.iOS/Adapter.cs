@@ -24,8 +24,9 @@ namespace BluetoothLE.iOS {
 		private readonly List<IDevice> _devices = new List<IDevice>();
 		private static Adapter _current;
 		private Task _startAdvertise;
+	    private readonly CancellationTokenSource _scanCancellationToken;
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the current Adpater instance
 		/// </summary>
 		/// <value>The current Adapter instance</value>
@@ -49,8 +50,8 @@ namespace BluetoothLE.iOS {
 
 			_current = this;
 
-
-			_peripheralManager = new CBPeripheralManager(this, null);
+            _scanCancellationToken = new CancellationTokenSource();
+            _peripheralManager = new CBPeripheralManager(this, null);
 		}
 
 		#region ICBPeripheralManagerDelegate implementation
@@ -155,7 +156,7 @@ namespace BluetoothLE.iOS {
 		/// Start scanning for devices.
 		/// </summary>
 		public void StartScanningForDevices() {
-			StartScanningForDevices(false, new string[0]);
+			StartScanningForDevices(new string[0]);
 		}
 
 		/// <summary>
@@ -163,7 +164,7 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		/// <param name="continuousScanning">Continuous scanning without timeout</param>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		public async void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids) {
+		public async void StartScanningForDevices(params string[] serviceUuids) {
 			await WaitForState(CBCentralManagerState.PoweredOn);
 			Debug.WriteLine ("StartScanningForDevices");
 			var uuids = new List<CBUUID>();
@@ -173,18 +174,16 @@ namespace BluetoothLE.iOS {
 
 			IsScanning = true;
 
-			var options = new PeripheralScanningOptions() { AllowDuplicatesKey = continuousScanning };
+			var options = new PeripheralScanningOptions() {  };
 			_devices.Clear ();
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
-			if (continuousScanning == false) {
 				// Wait for the timeout
-				await Task.Delay(ScanTimeout);
+			await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
 
-				if (IsScanning) {
-					StopScanningForDevices();
-					ScanTimeoutElapsed(this, EventArgs.Empty);
-				}
+			if (IsScanning) {
+				StopScanningForDevices();
+				ScanTimeoutElapsed(this, EventArgs.Empty);
 			}
 		}
 
@@ -195,6 +194,7 @@ namespace BluetoothLE.iOS {
 			Debug.WriteLine ("StopScanningForDevices");
 			if (_central.IsScanning){
 				IsScanning = false;
+                _scanCancellationToken.Cancel();
 			}
 			
 			_central.StopScan();

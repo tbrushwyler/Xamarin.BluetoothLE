@@ -44,13 +44,5 @@ namespace BluetoothLE.Droid {
 			}
 			return dict;
 		}
-
-		public override void OnBatchScanResults(IList<ScanResult> results) {
-			base.OnBatchScanResults(results);
-		}
-
-		public override void OnScanFailed(ScanFailure errorCode) {
-			base.OnScanFailed(errorCode);
-		}
 	}
 }

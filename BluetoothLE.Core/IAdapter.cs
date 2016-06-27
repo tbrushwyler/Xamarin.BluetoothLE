@@ -82,7 +82,7 @@ namespace BluetoothLE.Core {
 		/// Start scanning for devices.
 		/// </summary>
 		/// <param name="serviceUuids">White-listed service UUIDs</param>
-		void StartScanningForDevices(bool continuousScanning = false, params string[] serviceUuids);
+		void StartScanningForDevices(params string[] serviceUuids);
 
 		/// <summary>
 		/// Stop scanning for devices.
