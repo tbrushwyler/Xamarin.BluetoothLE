@@ -21,10 +21,11 @@ namespace BluetoothLE.iOS {
 		private readonly CBCentralManager _central;
 		private readonly CBPeripheralManager _peripheralManager;
 		private readonly AutoResetEvent _stateChanged;
-		private readonly List<IDevice> _devices = new List<IDevice>();
+		private List<IDevice> _devices = new List<IDevice>();
+		private List<IDevice> _discoveringDevices = new List<IDevice>();
 		private static Adapter _current;
 		private Task _startAdvertise;
-	    private readonly CancellationTokenSource _scanCancellationToken;
+	    private CancellationTokenSource _scanCancellationToken;
 
 	    /// <summary>
 		/// Gets the current Adpater instance
@@ -133,7 +134,7 @@ namespace BluetoothLE.iOS {
 		/// <summary>
 		/// Occurs when scan timeout elapsed.
 		/// </summary>
-		public event EventHandler ScanTimeoutElapsed = delegate { };
+		public event EventHandler<DevicesDiscoveredEventArgs> ScanTimeoutElapsed = delegate { };
 
 		/// <summary>
 		/// Occurs when a device failed to connect.
@@ -175,16 +176,26 @@ namespace BluetoothLE.iOS {
 			IsScanning = true;
 
 			var options = new PeripheralScanningOptions() {  };
-			_devices.Clear ();
+			_discoveringDevices = new List<IDevice> ();
 			_central.ScanForPeripherals(uuids.ToArray(), options);
 
-				// Wait for the timeout
-			await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
+            // Wait for the timeout
+            _scanCancellationToken = new CancellationTokenSource();
+            try {
+                await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
+                _scanCancellationToken = null;
+            } catch (Exception) {
+                // ignored
+            }
 
 			if (IsScanning) {
 				StopScanningForDevices();
-				ScanTimeoutElapsed(this, EventArgs.Empty);
-			}
+				var currentDevices = _devices.Select (x => x.Id);
+				var newDevices = _discoveringDevices.Select (x => x.Id);
+				var removeList = currentDevices.Except (newDevices);
+				_devices.RemoveAll (x => removeList.Any (g => g == x.Id));
+                ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_discoveringDevices));
+            }
 		}
 
 		/// <summary>
@@ -192,11 +203,14 @@ namespace BluetoothLE.iOS {
 		/// </summary>
 		public void StopScanningForDevices() {
 			Debug.WriteLine ("StopScanningForDevices");
-			if (_central.IsScanning){
-				IsScanning = false;
-                _scanCancellationToken.Cancel();
-			}
-			
+			if (IsScanning && _scanCancellationToken != null) {
+                try {
+                    _scanCancellationToken.Cancel();
+                } catch (TaskCanceledException e) {
+                    // ignored
+                }
+            }
+            IsScanning = false;
 			_central.StopScan();
 		}
 
@@ -204,24 +218,10 @@ namespace BluetoothLE.iOS {
 		/// Connect to a device.
 		/// </summary>
 		/// <param name="device">The device.</param>
-		public async void ConnectToDevice(IDevice device) {
-			var peripheral = device.NativeDevice as CBPeripheral;
+		public void ConnectToDevice(IDevice device) {
+			var peripheral = (CBPeripheral)device.NativeDevice;
 			_central.ConnectPeripheral(peripheral);
-
-			await Task.Delay(ConnectionTimeout);
-
-			if (ConnectedDevices.All(x => x.Id != device.Id)) {
-				if (peripheral != null && peripheral.IsConnected){
-					_central.CancelPeripheralConnection(peripheral);
-				}
-				
-				var args = new DeviceConnectionEventArgs(device) {
-					ErrorMessage = "The device connection timed out."
-				};
-
-				DeviceFailedToConnect(this, args);
-			}
-		}
+        }
 
 		/// <summary>
 		/// Discconnect from a device.
@@ -274,48 +274,56 @@ namespace BluetoothLE.iOS {
 		/// <c>false</c>
 		public bool IsScanning { get; set; }
 
-		/// <summary>
-		/// Gets the discovered devices.
-		/// </summary>
-		/// <value>The discovered devices.</value>
-		public IList<IDevice> DiscoveredDevices {
-			get { return _devices.ToList(); }
-		}
+        /// <summary>
+        /// Gets the discovered devices.
+        /// </summary>
+        /// <value>The discovered devices.</value>
+        //public IList<IDevice> DiscoveredDevices {
+        //	get { return _devices.ToList(); }
+        //}
 
-		/// <summary>
-		/// Gets the connected devices.
-		/// </summary>
-		/// <value>The connected devices.</value>
-		public IList<IDevice> ConnectedDevices {
-			get {
-				return _devices.Where(x => x.State == DeviceState.Connected).ToList();
-			}
-		}
+        /// <summary>
+        /// Gets the connected devices.
+        /// </summary>
+        /// <value>The connected devices.</value>
+        //public IList<IDevice> ConnectedDevices {
+        //	get {
+        //		return _devices.Where(x => x.State == DeviceState.Connected).ToList();
+        //	}
+        //}
 
-		#endregion
+        #endregion
 
-		#region CBCentralManager delegate methods
+        #region CBCentralManager delegate methods
 
-		private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e) {
+        private void DiscoveredPeripheral(object sender, CBDiscoveredPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
 
-			//System.Diagnostics.Debug.WriteLine($"Discovered BT Device: {deviceId}");
+            if (_discoveringDevices.All(x => x.Id != deviceId)) {
+                var device = new Device(e.Peripheral, e.RSSI);
+                _discoveringDevices.Add(device);
+                device.AdvertismentData = ProcessData(e.AdvertisementData);
+                device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
 
-			var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
+                if (_devices.All(x => x.Id != device.Id)) {
+                    _devices.Add(device);
+                }
+				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
+            }
+            //var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
 
-			if (addedDevice == null) {
-				// New Device
-				var device = new Device(e.Peripheral, e.RSSI);
-				_devices.Add(device);
-				device.AdvertismentData = ProcessData(e.AdvertisementData);
-				device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
-				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-			} else {
-				var device = (Device)addedDevice;
-				device.UpdateRssi(e.RSSI);
-				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-			}
-		}
+            //if (addedDevice == null) {
+            //	var device = new Device(e.Peripheral, e.RSSI);
+            //	_devices.Add(device);
+            //	device.AdvertismentData = ProcessData(e.AdvertisementData);
+            //	device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
+            //	DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
+            //} else {
+            //	var device = (Device)addedDevice;
+            //	device.UpdateRssi(e.RSSI);
+            //	DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
+            //}
+        }
 
 		private static List<Guid> ProcessUuids(NSDictionary advertisementData) {
 			List<Guid> guids = new List<Guid>();
@@ -371,13 +379,15 @@ namespace BluetoothLE.iOS {
 
 		private void ConnectedPeripheral(object sender, CBPeripheralEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			//var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			var device = new Device(e.Peripheral);
 			DeviceConnected(this, new DeviceConnectionEventArgs(device));
 		}
 
 		private void DisconnectedPeripheral(object sender, CBPeripheralErrorEventArgs e) {
 			var deviceId = Device.DeviceIdentifierToGuid(e.Peripheral.Identifier);
-			var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			//var device = _devices.FirstOrDefault (x => x.Id == deviceId);
+			var device = new Device(e.Peripheral);
 			DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
 		}
 

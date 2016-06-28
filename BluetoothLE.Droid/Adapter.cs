@@ -31,6 +31,8 @@ namespace BluetoothLE.Droid {
         private BluetoothGatt _gatt;
 
         private List<IDevice> _devices = new List<IDevice>();
+        private List<IDevice> _discoveringDevices = new List<IDevice>();
+
         private CancellationTokenSource _scanCancellationToken;
         /// <summary>
         /// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
@@ -81,7 +83,7 @@ namespace BluetoothLE.Droid {
         /// <summary>
         /// Occurs when scan timeout elapsed.
         /// </summary>
-        public event EventHandler ScanTimeoutElapsed = delegate { };
+        public event EventHandler<DevicesDiscoveredEventArgs> ScanTimeoutElapsed = delegate { };
 
         /// <summary>
         /// Occurs when advertising start fails
@@ -120,8 +122,9 @@ namespace BluetoothLE.Droid {
                 }
             }
 
+            // Clear discover list
+            _discoveringDevices = new List<IDevice>();
 
-            _devices.RemoveAll(x => x.State != DeviceState.Connected && x.State != DeviceState.Connecting);
             _adapter.BluetoothLeScanner.StartScan(_scanCallback);
             
             _scanCancellationToken = new CancellationTokenSource();
@@ -134,7 +137,11 @@ namespace BluetoothLE.Droid {
 
             if (IsScanning) {
                 StopScanningForDevices();
-                ScanTimeoutElapsed(this, EventArgs.Empty);
+                var currentDevices = _devices.Select(x => x.Id);
+                var newDevices = _discoveringDevices.Select(x => x.Id);
+                var removeList = currentDevices.Except(newDevices);
+                _devices.RemoveAll(x => removeList.Any(g => g == x.Id));
+                ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_discoveringDevices));
             }
         }
 
@@ -266,17 +273,17 @@ namespace BluetoothLE.Droid {
         /// Gets the discovered devices.
         /// </summary>
         /// <value>The discovered devices.</value>
-        public IList<IDevice> DiscoveredDevices => _devices.ToList();
+        //public IList<IDevice> DiscoveredDevices => _devices.ToList();
 
         /// <summary>
         /// Gets the connected devices.
         /// </summary>
         /// <value>The connected devices.</value>
-        public IList<IDevice> ConnectedDevices {
-            get {
-                return _devices.Where(x => x.State == DeviceState.Connected).ToList();
-            }
-        }
+        //public IList<IDevice> ConnectedDevices {
+        //    get {
+        //        return _devices.Where(x => x.State == DeviceState.Connected).ToList();
+        //    }
+        //}
 
         #endregion
 
@@ -318,7 +325,13 @@ namespace BluetoothLE.Droid {
         }
 
         private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
-            if (DiscoveredDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+            if (_discoveringDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+                _discoveringDevices.Add(deviceDiscoveredEventArgs.Device);
+
+                if (_devices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+                    _devices.Add(deviceDiscoveredEventArgs.Device);
+                }
+
                 _devices.Add(deviceDiscoveredEventArgs.Device);
                 DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
             }
