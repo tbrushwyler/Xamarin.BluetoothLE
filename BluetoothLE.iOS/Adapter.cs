@@ -218,23 +218,9 @@ namespace BluetoothLE.iOS {
 		/// Connect to a device.
 		/// </summary>
 		/// <param name="device">The device.</param>
-		public async void ConnectToDevice(IDevice device) {
-			var peripheral = device.NativeDevice as CBPeripheral;
+		public void ConnectToDevice(IDevice device) {
+			var peripheral = (CBPeripheral)device.NativeDevice;
 			_central.ConnectPeripheral(peripheral);
-
-            //await Task.Delay(ConnectionTimeout);
-
-            //if (ConnectedDevices.All(x => x.Id != device.Id)) {
-            //    if (peripheral != null && peripheral.IsConnected) {
-            //        _central.CancelPeripheralConnection(peripheral);
-            //    }
-
-            //    var args = new DeviceConnectionEventArgs(device) {
-            //        ErrorMessage = "The device connection timed out."
-            //    };
-
-            //    DeviceFailedToConnect(this, args);
-            //}
         }
 
 		/// <summary>
