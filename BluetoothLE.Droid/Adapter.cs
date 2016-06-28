@@ -141,7 +141,7 @@ namespace BluetoothLE.Droid {
                 var newDevices = _discoveringDevices.Select(x => x.Id);
                 var removeList = currentDevices.Except(newDevices);
                 _devices.RemoveAll(x => removeList.Any(g => g == x.Id));
-                ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_devices));
+                ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_discoveringDevices));
             }
         }
 
