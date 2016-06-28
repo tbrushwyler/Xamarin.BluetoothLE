@@ -31,6 +31,7 @@ namespace BluetoothLE.Droid {
         private BluetoothGatt _gatt;
 
         private List<IDevice> _devices = new List<IDevice>();
+        private List<IDevice> _discoveringDevices = new List<IDevice>();
 
         private CancellationTokenSource _scanCancellationToken;
         /// <summary>
@@ -122,7 +123,7 @@ namespace BluetoothLE.Droid {
             }
 
             // Clear discover list
-            _devices = new List<IDevice>();
+            _discoveringDevices = new List<IDevice>();
 
             _adapter.BluetoothLeScanner.StartScan(_scanCallback);
             
@@ -136,6 +137,10 @@ namespace BluetoothLE.Droid {
 
             if (IsScanning) {
                 StopScanningForDevices();
+                var currentDevices = _devices.Select(x => x.Id);
+                var newDevices = _discoveringDevices.Select(x => x.Id);
+                var removeList = currentDevices.Except(newDevices);
+                _devices.RemoveAll(x => removeList.Any(g => g == x.Id));
                 ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_devices));
             }
         }
@@ -268,17 +273,17 @@ namespace BluetoothLE.Droid {
         /// Gets the discovered devices.
         /// </summary>
         /// <value>The discovered devices.</value>
-        public IList<IDevice> DiscoveredDevices => _devices.ToList();
+        //public IList<IDevice> DiscoveredDevices => _devices.ToList();
 
         /// <summary>
         /// Gets the connected devices.
         /// </summary>
         /// <value>The connected devices.</value>
-        public IList<IDevice> ConnectedDevices {
-            get {
-                return _devices.Where(x => x.State == DeviceState.Connected).ToList();
-            }
-        }
+        //public IList<IDevice> ConnectedDevices {
+        //    get {
+        //        return _devices.Where(x => x.State == DeviceState.Connected).ToList();
+        //    }
+        //}
 
         #endregion
 
@@ -320,7 +325,13 @@ namespace BluetoothLE.Droid {
         }
 
         private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
-            if (_devices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+            if (_discoveringDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+                _discoveringDevices.Add(deviceDiscoveredEventArgs.Device);
+
+                if (_devices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
+                    _devices.Add(deviceDiscoveredEventArgs.Device);
+                }
+
                 _devices.Add(deviceDiscoveredEventArgs.Device);
                 DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
             }

@@ -61,17 +61,17 @@ namespace BluetoothLE.Core {
 		/// <value>The connection timeout.</value>
 		TimeSpan ConnectionTimeout { get; set; }
 
-		/// <summary>
-		/// Gets the discovered devices.
-		/// </summary>
-		/// <value>The discovered devices.</value>
-		IList<IDevice> DiscoveredDevices { get; }
+		///// <summary>
+		///// Gets the discovered devices.
+		///// </summary>
+		///// <value>The discovered devices.</value>
+		//IList<IDevice> DiscoveredDevices { get; }
 
-		/// <summary>
-		/// Gets the connected devices.
-		/// </summary>
-		/// <value>The connected devices.</value>
-		IList<IDevice> ConnectedDevices { get; }
+		///// <summary>
+		///// Gets the connected devices.
+		///// </summary>
+		///// <value>The connected devices.</value>
+		//IList<IDevice> ConnectedDevices { get; }
 
 		/// <summary>
 		/// Start scanning for devices.
