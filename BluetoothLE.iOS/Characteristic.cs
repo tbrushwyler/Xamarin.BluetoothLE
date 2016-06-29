@@ -24,6 +24,7 @@ namespace BluetoothLE.iOS
 		public Characteristic(CBPeripheral peripheral, CBCharacteristic nativeCharacteristic)
 		{
 			_peripheral = peripheral;
+			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
 			_nativeCharacteristic = nativeCharacteristic;
 
 			_id = _nativeCharacteristic.UUID.ToString().ToGuid();
@@ -34,7 +35,7 @@ namespace BluetoothLE.iOS
 		/// <summary>
 		/// Occurs when value updated.
 		/// </summary>
-		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated;
+		public event EventHandler<CharacteristicReadEventArgs> ValueUpdated = delegate { };
 
 		private bool _isUpdating;
 		/// <summary>
@@ -45,7 +46,6 @@ namespace BluetoothLE.iOS
 			if (!CanUpdate)
 				throw new InvalidOperationException("Characteristic does not support UPDATE");
 
-			_peripheral.UpdatedCharacterteristicValue += UpdatedCharacteristicValue;
 			_peripheral.SetNotifyValue(true, _nativeCharacteristic);
 			_isUpdating = true;
 		}
@@ -57,7 +57,6 @@ namespace BluetoothLE.iOS
 		{
 			if (CanUpdate)
 			{
-				_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
 				_peripheral.SetNotifyValue(false, _nativeCharacteristic);
 			}
 
@@ -165,7 +164,10 @@ namespace BluetoothLE.iOS
 
 		private void UpdatedCharacteristicValue(object sender, CBCharacteristicEventArgs e)
 		{
-			ValueUpdated(this, new CharacteristicReadEventArgs(this));
+			if (e.Characteristic.UUID == _nativeCharacteristic.UUID)
+			{
+				ValueUpdated(this, new CharacteristicReadEventArgs(this));
+			}
 		}
 
 		#endregion
@@ -181,10 +183,7 @@ namespace BluetoothLE.iOS
 		/// so the garbage collector can reclaim the memory that the <see cref="BluetoothLE.iOS.Characteristic"/> was occupying.</remarks>
 		public void Dispose()
 		{
-			if (_isUpdating)
-			{
-				_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
-			}
+			_peripheral.UpdatedCharacterteristicValue -= UpdatedCharacteristicValue;
 		}
 
 		#endregion
