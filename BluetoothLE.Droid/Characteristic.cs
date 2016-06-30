@@ -237,6 +237,10 @@ namespace BluetoothLE.Droid {
 
 		private void OnDescriptorWriteComplete(object sender, DescriptorWriteEventArgs descriptorWriteEventArgs) {
 			if (descriptorWriteEventArgs.CharacteristicId == this.Id) {
+                const string descriptorId = "00002902-0000-1000-8000-00805f9b34fb";
+			    if (descriptorWriteEventArgs.DescriptorId.ToString() == descriptorId) {
+                    NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, true));
+                }
 				DescriptorWriteComplete?.Invoke(this, descriptorWriteEventArgs);
 			}
 		}
@@ -246,7 +250,7 @@ namespace BluetoothLE.Droid {
 		private void SetUpdateValue(bool enable) {
 			var success = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
 			if (!success) {
-				//NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, false));
+				NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, false));
 			}
 			
 			if (_nativeCharacteristic.Descriptors.Count > 0) {
