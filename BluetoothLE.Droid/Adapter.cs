@@ -244,9 +244,6 @@ namespace BluetoothLE.Droid {
                 missingFeatures += $" OffloadedFiltering";
             }
             var support = multi && batching && filtering;
-            if (!support) {
-                throw new Exception($"Missing features: {missingFeatures}");
-            }
             return support;
         }
 

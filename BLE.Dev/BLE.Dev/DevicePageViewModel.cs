@@ -183,7 +183,7 @@ namespace BLE.Dev {
 		}
 
 		public void Refresh() {
-			_adapter.StartScanningForDevices(true);
+			//_adapter.StartScanningForDevices(true);
 		}
 
 		public void Clear() {

@@ -249,7 +249,7 @@ namespace BluetoothLE.iOS {
 
 				_peripheralManager.StartAdvertising(optionsDict);
 			});
-
+            
 			if (_peripheralManager.State == CBPeripheralManagerState.PoweredOn) {
 				_startAdvertise.Start();
 				await _startAdvertise;
@@ -263,7 +263,8 @@ namespace BluetoothLE.iOS {
 		}
 
 		public bool SupportsAdvertising() {
-			// CBPeripheralManager seems to be widely supported by Apple, in the limited fassion that it is implemented
+			// CBPeripheralManager seems to be widely supported by Apple
+            // iPhone 4s does not have ble chip
 			return UIDevice.CurrentDevice.CheckSystemVersion(6, 0);
 		}
 
@@ -310,19 +311,6 @@ namespace BluetoothLE.iOS {
                 }
 				DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
             }
-            //var addedDevice = this.DiscoveredDevices.FirstOrDefault(d => d.Id == deviceId);
-
-            //if (addedDevice == null) {
-            //	var device = new Device(e.Peripheral, e.RSSI);
-            //	_devices.Add(device);
-            //	device.AdvertismentData = ProcessData(e.AdvertisementData);
-            //	device.AdvertisedServiceUuids = ProcessUuids(e.AdvertisementData);
-            //	DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-            //} else {
-            //	var device = (Device)addedDevice;
-            //	device.UpdateRssi(e.RSSI);
-            //	DeviceDiscovered(this, new DeviceDiscoveredEventArgs(device));
-            //}
         }
 
 		private static List<Guid> ProcessUuids(NSDictionary advertisementData) {
