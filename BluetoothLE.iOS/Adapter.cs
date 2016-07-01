@@ -12,6 +12,7 @@ using CoreFoundation;
 using Foundation;
 using UIKit;
 using System.Diagnostics;
+using BluetoothLE.iOS.Common;
 
 namespace BluetoothLE.iOS {
 	/// <summary>
@@ -263,9 +264,23 @@ namespace BluetoothLE.iOS {
 		}
 
 		public bool SupportsAdvertising() {
-			// CBPeripheralManager seems to be widely supported by Apple
+            var deviceInfo = DeviceHelper.GetDeviceInfo();
+
+            // CBPeripheralManager seems to be widely supported by Apple
             // iPhone 4s does not have ble chip
-			return UIDevice.CurrentDevice.CheckSystemVersion(6, 0);
+            //return UIDevice.CurrentDevice.CheckSystemVersion(6, 0);
+
+            return deviceInfo.Model != DeviceModelTypes.iPad
+                 && deviceInfo.Model != DeviceModelTypes.iPad2 
+                 && deviceInfo.Model != DeviceModelTypes.iPhone
+                 && deviceInfo.Model != DeviceModelTypes.iPhone3G
+                 && deviceInfo.Model != DeviceModelTypes.iPhone3GS
+                 && deviceInfo.Model != DeviceModelTypes.iPhone4
+                 && deviceInfo.Model != DeviceModelTypes.iPhone4S
+                 && deviceInfo.Model != DeviceModelTypes.iPod1G
+                 && deviceInfo.Model != DeviceModelTypes.iPod2G
+                 && deviceInfo.Model != DeviceModelTypes.iPod3G
+                 && deviceInfo.Model != DeviceModelTypes.iPod4G;
 		}
 
 		/// <summary>

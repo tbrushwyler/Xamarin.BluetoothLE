@@ -37,6 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+    <Folder Include="Common\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Factory\CharacteristicsFactory.cs" />
@@ -46,6 +47,7 @@
     <Compile Include="Device.cs" />
     <Compile Include="Characteristic.cs" />
     <Compile Include="Service.cs" />
+    <Compile Include="Common\DeviceHelper.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
