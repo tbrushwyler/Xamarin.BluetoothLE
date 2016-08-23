@@ -243,7 +243,6 @@ namespace BluetoothLE.iOS {
 					_peripheralManager.AddService((CBMutableService)service.NativeService);
 				}
 
-
 				var optionsDict = new NSMutableDictionary();
 				optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
 				optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;

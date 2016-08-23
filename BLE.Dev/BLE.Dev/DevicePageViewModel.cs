@@ -115,22 +115,9 @@ namespace BLE.Dev {
 			_adapter.DeviceDiscovered += AdapterOnDeviceDiscovered;
 
 			var serviceFactory = DependencyService.Get<IServiceFactory>();
-			var service = serviceFactory.CreateService(BattByteServiceGuid, true);
-			
-			// Voltage
-			AddCharacteristic(ref service, VoltageGuid, CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, BitConverter.GetBytes(Voltage));
-			// Temperature
-			AddCharacteristic(ref service, TemperatureGuid, CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, BitConverter.GetBytes(Temperature));
-			// ELT
-			AddCharacteristic(ref service, EltGuid, CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, BitConverter.GetBytes(Temperature));
-			// Voltage/Temperature Zone Accumulator 
-			AddCharacteristic(ref service, VoltageTemperatureZoneAccGuid, CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, new byte[] { 0x12, 0x34 });
-			// Time
-			AddCharacteristic(ref service, TimeGuid, CharacterisiticPermissionType.Read, CharacteristicPropertyType.Read, BitConverter.GetBytes(Time));
-			// Configuration
-			AddCharacteristic(ref service, ConfigurationGuid, CharacterisiticPermissionType.Write | CharacterisiticPermissionType.Read, CharacteristicPropertyType.Write | CharacteristicPropertyType.Read, BitConverter.GetBytes(Configuration));
+            var service = serviceFactory.CreateService(Guid.Parse("222A1FEB-6173-4059-818A-B826A09526A2"/*"BC2F984A-0000-1000-8000-00805f9b34fb"*/), false);
 
-			_adapter.StartAdvertising("BattByteTest", new List<IService>() { service });
+			_adapter.StartAdvertising($"B_{Device.OS}", new List<IService>() { service });
 
 		}
 

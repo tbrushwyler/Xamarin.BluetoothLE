@@ -195,8 +195,9 @@ namespace BluetoothLE.Droid {
 
         public void StartAdvertising(string localName, List<IService> services) {
             var settings = new AdvertiseSettings.Builder()
-                    .SetAdvertiseMode(AdvertiseMode.Balanced)
+                    .SetAdvertiseMode(AdvertiseMode.LowLatency)
                     .SetTxPowerLevel(AdvertiseTx.PowerHigh)
+                    .SetTimeout(0)
                     .SetConnectable(true)
                     .Build();
 
@@ -204,15 +205,15 @@ namespace BluetoothLE.Droid {
             _adapter.SetName(localName);
 
             var advertiseDataBuilder = new AdvertiseData.Builder()
-                .SetIncludeDeviceName(true);
+                .SetIncludeTxPowerLevel(false)
+                .SetIncludeDeviceName(false);
 
-            foreach (Service service in services) {
-                var parcelUuid = new ParcelUuid(UUID.FromString(service.Uuid));
+            foreach (Service service in services)
+            {
+                var serviceUuid = service.Uuid;
+                var uuid = UUID.FromString(serviceUuid);
+                var parcelUuid = new ParcelUuid(uuid);
                 advertiseDataBuilder.AddServiceUuid(parcelUuid);
-                if (_gattServer == null) {
-                    continue;
-                }
-                _gattServer.AddService(service.NativeService);
             }
             var advertiseData = advertiseDataBuilder.Build();
 
