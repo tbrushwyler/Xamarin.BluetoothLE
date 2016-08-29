@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Threading.Tasks;
 using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.Core {
@@ -101,7 +102,7 @@ namespace BluetoothLE.Core {
 		/// <param name="device">The device.</param>
 		void DisconnectDevice(IDevice device);
 
-		void StartAdvertising(string localName, List<IService> services);
+		Task StartAdvertising(string localName, List<IService> services);
 
 		/// <summary>
 		/// Stop advertising

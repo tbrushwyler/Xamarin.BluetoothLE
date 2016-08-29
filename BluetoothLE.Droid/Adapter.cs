@@ -193,7 +193,7 @@ namespace BluetoothLE.Droid {
             }
         }
 
-        public void StartAdvertising(string localName, List<IService> services) {
+        public Task StartAdvertising(string localName, List<IService> services) {
             var settings = new AdvertiseSettings.Builder()
                     .SetAdvertiseMode(AdvertiseMode.LowLatency)
                     .SetTxPowerLevel(AdvertiseTx.PowerHigh)
@@ -201,24 +201,29 @@ namespace BluetoothLE.Droid {
                     .SetConnectable(true)
                     .Build();
 
-
-            _adapter.SetName(localName);
+            if (localName != null)
+            {
+                _adapter.SetName(localName);
+            }
 
             var advertiseDataBuilder = new AdvertiseData.Builder()
                 .SetIncludeTxPowerLevel(false)
                 .SetIncludeDeviceName(false);
 
-            foreach (Service service in services)
+            if (services != null)
             {
-                var serviceUuid = service.Uuid;
-                var uuid = UUID.FromString(serviceUuid);
-                var parcelUuid = new ParcelUuid(uuid);
-                advertiseDataBuilder.AddServiceUuid(parcelUuid);
+                foreach (Service service in services)
+                {
+                    var serviceUuid = service.Uuid;
+                    var uuid = UUID.FromString(serviceUuid);
+                    var parcelUuid = new ParcelUuid(uuid);
+                    advertiseDataBuilder.AddServiceUuid(parcelUuid);
+                }
             }
             var advertiseData = advertiseDataBuilder.Build();
 
             _adapter.BluetoothLeAdvertiser.StartAdvertising(settings, advertiseData, _advertiseCallback);
-
+            return Task.FromResult(true);
         }
 
         /// <summary>

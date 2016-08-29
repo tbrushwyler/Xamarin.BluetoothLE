@@ -106,7 +106,6 @@ namespace BluetoothLE.Droid {
 				return;
 
 			try {
-				_gatt.Disconnect();
 				_gatt.Close();
 
 				State = DeviceState.Disconnected;
