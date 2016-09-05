@@ -56,27 +56,7 @@ namespace BluetoothLE.Droid {
 
 		public bool Updating => _isUpdating;
 
-		public void SetIndication(bool enable) {
-			if (_nativeCharacteristic.Descriptors.Count > 0) {
-				var set = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
-				if (!set) {
-					//DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
-				}
-
-				string descriptorId = "2902".ToGuid().ToString();
-				var descriptor = _nativeCharacteristic.Descriptors.FirstOrDefault(x => x.Uuid.ToString() == descriptorId);
-				if (descriptor != null) {
-					var value = (enable) ?  BluetoothGattDescriptor.EnableIndicationValue : BluetoothGattDescriptor.DisableNotificationValue;
-					descriptor.SetValue(value.ToArray());
-					var write = _gatt.WriteDescriptor(descriptor);
-					if (!write) {
-						//DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
-					}
-				}
-			}
-		}
-
-		/// <summary>
+	    /// <summary>
 		/// Subscribe to the characteristic
 		/// </summary>
 		public void StartUpdates() {
@@ -86,7 +66,7 @@ namespace BluetoothLE.Droid {
 			SetUpdateValue(true);
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Unsubscribe from the characteristic
 		/// </summary>
 		public void StopUpdates() {
@@ -94,7 +74,7 @@ namespace BluetoothLE.Droid {
 				SetUpdateValue(false);
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Read the characteristic's value
 		/// </summary>
 		public void Read() {
@@ -103,7 +83,7 @@ namespace BluetoothLE.Droid {
 			_gatt.ReadCharacteristic(_nativeCharacteristic);
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Write the specified data to the characteristic
 		/// </summary>
 		/// <param name="data">Data.</param>
@@ -128,7 +108,7 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the unique identifier.
 		/// </summary>
 		/// <value>The unique identifier.</value>
@@ -136,7 +116,7 @@ namespace BluetoothLE.Droid {
 			get { return Guid.Parse(_nativeCharacteristic.Uuid.ToString()); }
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the UUID.
 		/// </summary>
 		/// <value>The UUID.</value>
@@ -144,7 +124,7 @@ namespace BluetoothLE.Droid {
 			get { return _nativeCharacteristic.Uuid.ToString(); }
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the characteristic's value.
 		/// </summary>
 		/// <value>The characteristic's value.</value>
@@ -153,7 +133,7 @@ namespace BluetoothLE.Droid {
 			set { _nativeCharacteristic.SetValue(value); }
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the characteristic's value as a string.
 		/// </summary>
 		/// <value>The characteristic's value, interpreted as a string.</value>
@@ -167,7 +147,7 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the native characteristic. Should be cast to the appropriate type.
 		/// </summary>
 		/// <value>The native characteristic.</value>
@@ -175,7 +155,7 @@ namespace BluetoothLE.Droid {
 			get { return _nativeCharacteristic; }
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets the characteristic's properties
 		/// </summary>
 		/// <value>The characteristic's properties.</value>
@@ -183,13 +163,13 @@ namespace BluetoothLE.Droid {
 			get { return (CharacteristicPropertyType)(int)_nativeCharacteristic.Properties; }
 		}
 
-		public CharacterisiticPermissionType Permissions {
+	    public CharacterisiticPermissionType Permissions {
 			get {
 				return GetPermissions(_nativeCharacteristic.Permissions);
 			}
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance can read.
 		/// </summary>
 		/// <value>true</value>
@@ -198,7 +178,7 @@ namespace BluetoothLE.Droid {
 			get { return (Properties & CharacteristicPropertyType.Read) > 0; }
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance can update.
 		/// </summary>
 		/// <value>true</value>
@@ -210,7 +190,7 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Gets a value indicating whether this instance can write.
 		/// </summary>
 		/// <value>true</value>
@@ -219,23 +199,23 @@ namespace BluetoothLE.Droid {
 			get { return Properties.HasFlag(CharacteristicPropertyType.WriteWithoutResponse) || Properties.HasFlag(CharacteristicPropertyType.Write); }
 		}
 
-		#endregion
+	    #endregion
 
-		#region GattCallback delegate methods
+	    #region GattCallback delegate methods
 
-		private void OnCharacteristicValueUpdated(object sender, CharacteristicUpdateEventArgs e) {
+	    private void OnCharacteristicValueUpdated(object sender, CharacteristicUpdateEventArgs e) {
 			if (e.Characteristic.Id == this.Id) {
 				ValueUpdated(this, e);
 			}
 		}
 
-		private void OnCharacteristicWriteComplete(object sender, CharacteristicWriteEventArgs characteristicUpdateEventArgs) {
+	    private void OnCharacteristicWriteComplete(object sender, CharacteristicWriteEventArgs characteristicUpdateEventArgs) {
 			if (characteristicUpdateEventArgs.Characteristic.Id == this.Id) {
 				WriteComplete?.Invoke(this, new CharacteristicWriteEventArgs(true, this));
 			}
 		}
 
-		private void OnDescriptorWriteComplete(object sender, DescriptorWriteEventArgs descriptorWriteEventArgs) {
+	    private void OnDescriptorWriteComplete(object sender, DescriptorWriteEventArgs descriptorWriteEventArgs) {
 			if (descriptorWriteEventArgs.CharacteristicId == this.Id) {
                 const string descriptorId = "00002902-0000-1000-8000-00805f9b34fb";
 			    if (descriptorWriteEventArgs.DescriptorId.ToString() == descriptorId) {
@@ -245,9 +225,9 @@ namespace BluetoothLE.Droid {
 			}
 		}
 
-		#endregion
+	    #endregion
 
-		private void SetUpdateValue(bool enable) {
+	    private void SetUpdateValue(bool enable) {
 			var success = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
 			if (!success) {
 				NotificationStateChanged?.Invoke(this, new CharacteristicNotificationStateEventArgs(this, false));
@@ -268,7 +248,7 @@ namespace BluetoothLE.Droid {
 			_isUpdating = enable;
 		}
 
-		/// <summary>
+	    /// <summary>
 		/// Convert abstracted permissions to android native permissions
 		/// </summary>
 		/// <param name="permissions"></param>
@@ -296,7 +276,27 @@ namespace BluetoothLE.Droid {
 			return nativePermissions;
 		}
 
-		/// <summary>
+	    public void SetIndication(bool enable) {
+	        if (_nativeCharacteristic.Descriptors.Count > 0) {
+	            var set = _gatt.SetCharacteristicNotification(_nativeCharacteristic, enable);
+	            if (!set) {
+	                //DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
+	            }
+
+	            string descriptorId = "2902".ToGuid().ToString();
+	            var descriptor = _nativeCharacteristic.Descriptors.FirstOrDefault(x => x.Uuid.ToString() == descriptorId);
+	            if (descriptor != null) {
+	                var value = (enable) ?  BluetoothGattDescriptor.EnableIndicationValue : BluetoothGattDescriptor.DisableNotificationValue;
+	                descriptor.SetValue(value.ToArray());
+	                var write = _gatt.WriteDescriptor(descriptor);
+	                if (!write) {
+	                    //DescriptorWriteComplete?.Invoke(this, new DescriptorWriteEventArgs(false, this.Id, "2902".ToGuid()));
+	                }
+	            }
+	        }
+	    }
+
+	    /// <summary>
 		/// Convert native permissions to abstracted permissions
 		/// </summary>
 		/// <param name="permission"></param>

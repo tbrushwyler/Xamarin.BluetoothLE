@@ -204,7 +204,7 @@ namespace BluetoothLE.iOS {
 		/// <c>false</c>
 		public bool CanUpdate {
 			get {
-				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Notify) > 0;  
+				return (Properties & CharacteristicPropertyType.Notify) > 0 || (Properties & CharacteristicPropertyType.Indicate) > 0;  
 				
 			}
 		}
