@@ -222,6 +222,11 @@ namespace BluetoothLE.iOS
             }
         }
 
+        public void StartContinuosScan()
+        {
+            
+        }
+
         /// <summary>
         /// Stop scanning for devices.
         /// </summary>

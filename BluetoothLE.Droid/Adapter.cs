@@ -26,7 +26,7 @@ namespace BluetoothLE.Droid {
 
         private readonly GattCallback _callback;
         private readonly AdvertiseCallback _advertiseCallback;
-        private readonly ScanCallback _scanCallback;
+        private ScanCallback _scanCallback;
 
         private BluetoothGatt _gatt;
 
@@ -45,9 +45,6 @@ namespace BluetoothLE.Droid {
             _callback = new GattCallback();
             _callback.DeviceConnected += BluetoothGatt_DeviceConnected;
             _callback.DeviceDisconnected += BluetoothGatt_DeviceDisconnected;
-
-            _scanCallback = new ScanCallback();
-            _scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
 
             _advertiseCallback = new AdvertiseCallback();
             _advertiseCallback.AdvertiseStartFailed += BluetoothGatt_AdvertiseStartFailed;
@@ -125,6 +122,8 @@ namespace BluetoothLE.Droid {
             // Clear discover list
             _discoveringDevices = new List<IDevice>();
 
+            CreateScanCallback();
+
             _adapter.BluetoothLeScanner.StartScan(_scanCallback);
             
             _scanCancellationToken = new CancellationTokenSource();
@@ -143,6 +142,32 @@ namespace BluetoothLE.Droid {
                 _devices.RemoveAll(x => removeList.Any(g => g == x.Id));
                 ScanTimeoutElapsed(this, new DevicesDiscoveredEventArgs(_discoveringDevices));
             }
+        }
+
+        private void CreateScanCallback()
+        {
+            if (_scanCallback != null)
+            {
+                _scanCallback.DeviceDiscovered -= ScanCallbackOnDeviceDiscovered;
+            }
+            _discoveringDevices = new List<IDevice>();
+
+            _scanCallback = new ScanCallback();
+            _scanCallback.DeviceDiscovered += ScanCallbackOnDeviceDiscovered;
+        }
+
+        public void StartContinuosScan()
+        {
+            if (IsScanning)
+            {
+                System.Diagnostics.Debug.WriteLine("Already scanning");
+                return;
+            }
+
+            IsScanning = true;
+            CreateScanCallback();
+
+            _adapter.BluetoothLeScanner.StartScan(_scanCallback);
         }
 
         /// <summary>
@@ -328,16 +353,7 @@ namespace BluetoothLE.Droid {
         }
 
         private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
-            if (_discoveringDevices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
-                _discoveringDevices.Add(deviceDiscoveredEventArgs.Device);
-
-                if (_devices.All(x => x.Id != deviceDiscoveredEventArgs.Device.Id)) {
-                    _devices.Add(deviceDiscoveredEventArgs.Device);
-                }
-
-                _devices.Add(deviceDiscoveredEventArgs.Device);
-                DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
-            }
+            DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
         }
 
         private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {

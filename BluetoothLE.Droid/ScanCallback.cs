@@ -35,7 +35,28 @@ namespace BluetoothLE.Droid {
 			DeviceDiscovered?.Invoke(this, eventArgs);
 		}
 
-		private Dictionary<Guid, byte[]> ProcessData(ScanRecord scanRecord) {
+	    public override void OnBatchScanResults(IList<ScanResult> results)
+	    {
+	        base.OnBatchScanResults(results);
+	        foreach (var result in results)
+	        {
+                var device = new Device(result.Device, null, null, result.Rssi);
+
+                if (result.ScanRecord != null)
+                {
+                    device.AdvertismentData = ProcessData(result.ScanRecord);
+                    if (result.ScanRecord.ServiceUuids != null)
+                    {
+                        device.AdvertisedServiceUuids = result.ScanRecord.ServiceUuids.Select(x => Guid.Parse(x.Uuid.ToString())).ToList();
+                    }
+                }
+                var eventArgs = new DeviceDiscoveredEventArgs(device);
+
+                DeviceDiscovered?.Invoke(this, eventArgs);
+            }
+        }
+
+	    private Dictionary<Guid, byte[]> ProcessData(ScanRecord scanRecord) {
 			var dict = new Dictionary<Guid, byte[]>();
 			foreach (var serviceData in scanRecord.ServiceData) {
 				var guid = Guid.ParseExact(serviceData.Key.ToString(), "d");
