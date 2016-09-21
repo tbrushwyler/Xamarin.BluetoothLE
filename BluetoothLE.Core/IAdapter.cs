@@ -5,6 +5,34 @@ using System.Threading.Tasks;
 using BluetoothLE.Core.Events;
 
 namespace BluetoothLE.Core {
+    public enum AdapterState
+    {
+        /// <summary>
+        ///  State unknown
+        /// </summary>
+        Unknown,
+        /// <summary>
+        /// Resetting
+        /// </summary>
+        Resetting,
+        /// <summary>
+        /// BLE is not supported
+        /// </summary>
+        Unsupported,
+        /// <summary>
+        /// BLE usage is not authorized
+        /// </summary>
+        Unauthorized,
+        /// <summary>
+        /// BLE is off
+        /// </summary>
+        PoweredOff,
+        /// <summary>
+        /// BLE is on
+        /// </summary>
+        PoweredOn
+    }
+
 	/// <summary>
 	/// Adapter interface that handles device discovery and connection.
 	/// </summary>

@@ -181,10 +181,12 @@ namespace BluetoothLE.iOS
         /// <summary>
         /// Start scanning for devices.
         /// </summary>
-        /// <param name="continuousScanning">Continuous scanning without timeout</param>
         /// <param name="serviceUuids">White-listed service UUIDs</param>
         public async void StartScanningForDevices(params string[] serviceUuids)
         {
+            if (IsScanning)
+                return;
+
             await WaitForState(CBCentralManagerState.PoweredOn);
             Debug.WriteLine("StartScanningForDevices");
             var uuids = new List<CBUUID>();
@@ -222,9 +224,19 @@ namespace BluetoothLE.iOS
             }
         }
 
-        public void StartContinuosScan()
+        public async void StartContinuosScan()
         {
-            
+            if (IsScanning)
+                return;
+
+            await WaitForState(CBCentralManagerState.PoweredOn);
+
+            IsScanning = true;
+
+            _discoveringDevices = new List<IDevice>();
+            var uuids = new List<CBUUID>();
+            var options = new PeripheralScanningOptions() { };
+            _central.ScanForPeripherals(uuids.ToArray(), options);
         }
 
         /// <summary>
