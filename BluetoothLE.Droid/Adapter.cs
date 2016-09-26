@@ -167,7 +167,7 @@ namespace BluetoothLE.Droid {
             IsScanning = true;
             CreateScanCallback();
 
-            _adapter.BluetoothLeScanner.StartScan(_scanCallback);
+            _adapter.BluetoothLeScanner?.StartScan(_scanCallback);
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace BluetoothLE.Droid {
                 }
             }
             IsScanning = false;
-            _adapter.BluetoothLeScanner.StopScan(_scanCallback);
+            _adapter.BluetoothLeScanner?.StopScan(_scanCallback);
         }
 
         /// <summary>

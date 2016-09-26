@@ -72,7 +72,7 @@ namespace BluetoothLE.Droid {
 					Services.Add(service);
 				}
 			}
-			ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services));
+			ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services.ToList()));
 		}
 
 		#endregion
