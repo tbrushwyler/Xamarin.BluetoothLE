@@ -205,9 +205,6 @@ namespace BluetoothLE.Droid {
         /// </summary>
         /// <param name="device">The device.</param>
         public void DisconnectDevice(IDevice device) {
-            if (_gatt == null)
-                return;
-
             Action action = () => PerformDisconnect(device);
 
             if (Configuration.DisconnectOnMainThread) {
