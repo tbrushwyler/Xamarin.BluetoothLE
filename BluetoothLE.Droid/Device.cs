@@ -105,8 +105,13 @@ namespace BluetoothLE.Droid {
 			if (_gatt == null)
 				return;
 
-			try {
-                _gatt.Disconnect();
+			try
+			{
+			    if (_gatt.GetConnectionState(_nativeDevice) == ProfileState.Connecting)
+			    {
+                    _gatt.Disconnect();
+                }
+                
 				_gatt.Close();
 
 				State = DeviceState.Disconnected;
