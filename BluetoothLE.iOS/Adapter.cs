@@ -343,6 +343,11 @@ namespace BluetoothLE.iOS
                    && deviceInfo.Model != DeviceModelTypes.iPod4G;
         }
 
+        public List<IDevice> ConnectedDevices()
+        {
+            return _central.RetrieveConnectedPeripherals((CBUUID) null).Select(x => new Device(x)).Cast<IDevice>().ToList();
+        }
+
         /// <summary>
         /// Gets a value indicating whether this instance is scanning.
         /// </summary>

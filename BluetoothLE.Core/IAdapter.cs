@@ -144,6 +144,8 @@ namespace BluetoothLE.Core {
 		/// </summary>
 		/// <returns></returns>
 		bool SupportsAdvertising();
+
+	    List<IDevice> ConnectedDevices();
 	}
 }
 

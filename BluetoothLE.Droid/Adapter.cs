@@ -34,13 +34,15 @@ namespace BluetoothLE.Droid {
         private List<IDevice> _discoveringDevices = new List<IDevice>();
 
         private CancellationTokenSource _scanCancellationToken;
+        private BluetoothManager _manager;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
         /// </summary>
         public Adapter() {
             var appContext = Android.App.Application.Context;
-            var manager = (BluetoothManager)appContext.GetSystemService(Context.BluetoothService);
-            _adapter = manager.Adapter;
+            _manager = (BluetoothManager)appContext.GetSystemService(Context.BluetoothService);
+            _adapter = _manager.Adapter;
 
             _callback = new GattCallback();
             _callback.DeviceConnected += BluetoothGatt_DeviceConnected;
@@ -51,7 +53,7 @@ namespace BluetoothLE.Droid {
             _advertiseCallback.AdvertiseStartSuccess += Bluetooth_AdvertiseStartSuccess;
 
             var callback = new GattServerCallback();
-            _gattServer = manager.OpenGattServer(appContext, callback);
+            _gattServer = _manager.OpenGattServer(appContext, callback);
             callback.Server = _gattServer;
         }
 
@@ -276,6 +278,11 @@ namespace BluetoothLE.Droid {
             }
             var support = multi && batching && filtering;
             return support;
+        }
+
+        public List<IDevice> ConnectedDevices()
+        {
+            return _manager?.GetConnectedDevices(ProfileType.Gatt).Select(x => new Device(x, null, _callback, 0)).Cast<IDevice>().ToList();
         }
 
         /// <summary>
