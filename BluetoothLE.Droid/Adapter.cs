@@ -27,9 +27,7 @@ namespace BluetoothLE.Droid {
         private readonly GattCallback _callback;
         private readonly AdvertiseCallback _advertiseCallback;
         private ScanCallback _scanCallback;
-
-        private BluetoothGatt _gatt;
-
+        
         private List<IDevice> _devices = new List<IDevice>();
         private List<IDevice> _discoveringDevices = new List<IDevice>();
 
@@ -343,15 +341,16 @@ namespace BluetoothLE.Droid {
             if (remoteDevice == null)
                 return;
 
-            _gatt = remoteDevice.ConnectGatt(Android.App.Application.Context, false, _callback);
-            _gatt.Connect();
+            var gatt = remoteDevice.ConnectGatt(Android.App.Application.Context, false, _callback);
+            gatt.Connect();
+            
         }
 
         private void PerformDisconnect(IDevice device) {
-            try {
+            try
+            {
                 device.Disconnect();
-                _gatt.Close(); // this will not trigger the OnConnectionStateChange.OnConnectionStateChange callback
-                _gatt = null;
+                
                 
                 DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
             } catch (Exception e) {
