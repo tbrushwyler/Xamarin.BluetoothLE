@@ -329,7 +329,9 @@ namespace BluetoothLE.Droid {
 
         #endregion
 
-        private void PerformConnectToDevice(IDevice device) {
+        private void PerformConnectToDevice(IDevice device)
+        {
+            var androidDevice = (Device) device;
             var bleDevice = device.NativeDevice as BluetoothDevice;
             if (bleDevice == null)
                 return;
@@ -339,6 +341,7 @@ namespace BluetoothLE.Droid {
                 return;
 
             var gatt = remoteDevice.ConnectGatt(Android.App.Application.Context, false, _callback);
+            androidDevice.Gatt = gatt;
             gatt.Connect();
             
         }

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Android.App;
 using Android.Bluetooth;
+using Android.Content;
 using Android.OS;
 using BluetoothLE.Core;
 using BluetoothLE.Core.Events;
@@ -13,7 +15,7 @@ namespace BluetoothLE.Droid {
 	/// </summary>
 	public class Device : IDevice {
 		private readonly GattCallback _callback;
-		private readonly BluetoothGatt _gatt;
+		private BluetoothGatt _gatt;
 		private readonly BluetoothDevice _nativeDevice;
 		private Dictionary<Guid, byte[]> _advertismentData;
 
@@ -66,13 +68,18 @@ namespace BluetoothLE.Droid {
 
 		private void OnServicesDiscovered(object sender, EventArgs e) {
 			Services.Clear();
-			foreach (var s in _gatt.Services) {
-				var service = new Service(s, _gatt, _callback);
-				if (Services.All(x => x.Id != service.Id)) {
-					Services.Add(service);
-				}
-			}
-			ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services.ToList()));
+		    if (_gatt != null)
+		    {
+		        foreach (var s in _gatt.Services)
+		        {
+		            var service = new Service(s, _gatt, _callback);
+		            if (Services.All(x => x.Id != service.Id))
+		            {
+		                Services.Add(service);
+		            }
+		        }
+		    }
+		    ServicesDiscovered(this, new ServicesDiscoveredEventArgs(Services.ToList()));
 		}
 
 		#endregion
@@ -107,7 +114,8 @@ namespace BluetoothLE.Droid {
 
 			try
 			{
-			    if (_gatt.GetConnectionState(_nativeDevice) == ProfileState.Connecting)
+                var man = (BluetoothManager)Application.Context.GetSystemService(Context.BluetoothService);
+                if (man.GetConnectionState(_nativeDevice, ProfileType.Gatt) == ProfileState.Connecting)
 			    {
                     _gatt.Disconnect();
                 }
@@ -177,6 +185,12 @@ namespace BluetoothLE.Droid {
 		/// <value>The device's services</value>
 		public IList<IService> Services { get; set; }
 
-		#endregion
+	    public BluetoothGatt Gatt
+	    {
+	        get { return _gatt; }
+	        set { _gatt = value; }
+	    }
+
+	    #endregion
 	}
 }

@@ -60,7 +60,7 @@ namespace BluetoothLE.Core
 		/// <value>The device's services</value>
 		IList<IService> Services { get; }
 
-		/// <summary>
+	    /// <summary>
 		/// Initiate a service discovery on the device
 		/// </summary>
 		void DiscoverServices();
