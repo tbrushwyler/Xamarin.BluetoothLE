@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Android.Bluetooth;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -15,31 +16,44 @@ using Android.Content;
 using Java.Nio;
 using Android.OS;
 using BluetoothLE.Core.Events;
+using BluetoothLE.Core.Factory;
+using BluetoothLE.Droid.Factory;
+using ReactiveBluetooth.Android.Common;
+using ReactiveBluetooth.Core;
 
-namespace BluetoothLE.Droid {
+namespace BluetoothLE.Droid
+{
     /// <summary>
     /// Concrete implementation of <see cref="BluetoothLE.Core.IAdapter"/> interface.
     /// </summary>
-    public class Adapter : Java.Lang.Object, IAdapter {
+    public class Adapter : Java.Lang.Object, IAdapter
+    {
         private readonly BluetoothAdapter _adapter;
         private readonly BluetoothGattServer _gattServer;
 
         private readonly GattCallback _callback;
         private readonly AdvertiseCallback _advertiseCallback;
         private ScanCallback _scanCallback;
-        
+
         private List<IDevice> _devices = new List<IDevice>();
         private List<IDevice> _discoveringDevices = new List<IDevice>();
 
         private CancellationTokenSource _scanCancellationToken;
         private BluetoothManager _manager;
+        private BroadcastListener _broadcastListener;
+
+        private ManagerState _peripheralState;
+        private ManagerState _centralState;
+        private IDisposable _peripheralStateDisposable;
+        private IDisposable _centralStateDisposable;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BluetoothLE.Droid.Adapter"/> class.
         /// </summary>
-        public Adapter() {
+        public Adapter()
+        {
             var appContext = Android.App.Application.Context;
-            _manager = (BluetoothManager)appContext.GetSystemService(Context.BluetoothService);
+            _manager = (BluetoothManager) appContext.GetSystemService(Context.BluetoothService);
             _adapter = _manager.Adapter;
 
             _callback = new GattCallback();
@@ -53,7 +67,56 @@ namespace BluetoothLE.Droid {
             var callback = new GattServerCallback();
             _gattServer = _manager.OpenGattServer(appContext, callback);
             callback.Server = _gattServer;
+            _broadcastListener = new BroadcastListener();
+
+            CharacteristicsFactory = new CharacteristicsFactory();
+            ServiceFactory = new ServiceFactory();
+
+            PeripheralStateChanged = _broadcastListener.StateUpdatedSubject.Select(state =>
+            {
+                if (state == ManagerState.PoweredOn)
+                {
+                    if (_adapter.BluetoothLeAdvertiser == null)
+                    {
+                        return ManagerState.Unsupported;
+                    }
+                    if (!_adapter.IsMultipleAdvertisementSupported)
+                    {
+                        return ManagerState.PartialSupport;
+                    }
+                }
+                return state;
+            }).AsObservable();
+
+            CentralStateChanged = _broadcastListener.StateUpdatedSubject.Select(state =>
+            {
+                if (state == ManagerState.PoweredOn)
+                {
+                    if (_adapter.BluetoothLeScanner == null)
+                    {
+                        return ManagerState.Unsupported;
+                    }
+                    if (!(_adapter.IsOffloadedFilteringSupported && _adapter.IsOffloadedScanBatchingSupported))
+                    {
+                        return ManagerState.PartialSupport;
+                    }
+                }
+
+                return state;
+            }).AsObservable();
+
+            _peripheralStateDisposable = PeripheralStateChanged.Subscribe(state => _peripheralState = state);
+            _centralStateDisposable = CentralStateChanged.Subscribe(state => _centralState = state);
         }
+
+        public ManagerState CentralState
+        {
+            get
+            {
+                return ManagerState.PoweredOn;
+            }
+        } 
+        public ManagerState PeripheralState => _peripheralState;
 
         #region IAdapter implementation
 
@@ -92,10 +155,17 @@ namespace BluetoothLE.Droid {
         /// </summary>
         public event EventHandler<AdvertiseStartEventArgs> AdvertiseStartSuccess = delegate { };
 
+        public IObservable<ManagerState> CentralStateChanged { get; }
+        public IObservable<ManagerState> PeripheralStateChanged { get; }
+
+        public ICharacteristicsFactory CharacteristicsFactory { get; }
+        public IServiceFactory ServiceFactory { get; }
+
         /// <summary>
         /// Start scanning for devices.
         /// </summary>
-        public void StartScanningForDevices() {
+        public void StartScanningForDevices()
+        {
             StartScanningForDevices(new string[0]);
         }
 
@@ -103,8 +173,10 @@ namespace BluetoothLE.Droid {
         /// Start scanning for devices.
         /// </summary>
         /// <param name="serviceUuids">White-listed service UUIDs</param>
-        public async void StartScanningForDevices(params string[] serviceUuids) {
-            if (IsScanning) {
+        public async void StartScanningForDevices(params string[] serviceUuids)
+        {
+            if (IsScanning)
+            {
                 System.Diagnostics.Debug.WriteLine("Already scanning");
                 return;
             }
@@ -112,8 +184,10 @@ namespace BluetoothLE.Droid {
             IsScanning = true;
 
             var uuids = new List<UUID>();
-            if (serviceUuids != null) {
-                foreach (var id in serviceUuids) {
+            if (serviceUuids != null)
+            {
+                foreach (var id in serviceUuids)
+                {
                     var guid = id.ToGuid();
                     uuids.Add(UUID.FromString(guid.ToString("D")));
                 }
@@ -125,16 +199,20 @@ namespace BluetoothLE.Droid {
             CreateScanCallback();
 
             _adapter.BluetoothLeScanner.StartScan(_scanCallback);
-            
+
             _scanCancellationToken = new CancellationTokenSource();
-            try {
+            try
+            {
                 await Task.Delay(ScanTimeout, _scanCancellationToken.Token);
                 _scanCancellationToken = null;
-            } catch (Exception) {
+            }
+            catch (Exception)
+            {
                 // ignored
             }
 
-            if (IsScanning) {
+            if (IsScanning)
+            {
                 StopScanningForDevices();
                 var currentDevices = _devices.Select(x => x.Id);
                 var newDevices = _discoveringDevices.Select(x => x.Id);
@@ -173,11 +251,16 @@ namespace BluetoothLE.Droid {
         /// <summary>
         /// Stop scanning for devices.
         /// </summary>
-        public void StopScanningForDevices() {
-            if (IsScanning && _scanCancellationToken != null) {
-                try {
+        public void StopScanningForDevices()
+        {
+            if (IsScanning && _scanCancellationToken != null)
+            {
+                try
+                {
                     _scanCancellationToken.Cancel();
-                } catch (TaskCanceledException e) {
+                }
+                catch (TaskCanceledException e)
+                {
                     // ignored
                 }
             }
@@ -189,13 +272,17 @@ namespace BluetoothLE.Droid {
         /// Connect to a device.
         /// </summary>
         /// <param name="device">The device.</param>
-        public void ConnectToDevice(IDevice device) {
+        public void ConnectToDevice(IDevice device)
+        {
             Action action = () => PerformConnectToDevice(device);
 
-            if (Configuration.ConnectOnMainThread) {
+            if (Configuration.ConnectOnMainThread)
+            {
                 var handler = new Handler(Looper.MainLooper);
                 handler.PostAtFrontOfQueue(action);
-            } else {
+            }
+            else
+            {
                 action.Invoke();
             }
         }
@@ -204,24 +291,29 @@ namespace BluetoothLE.Droid {
         /// Discconnect from a device.
         /// </summary>
         /// <param name="device">The device.</param>
-        public void DisconnectDevice(IDevice device) {
+        public void DisconnectDevice(IDevice device)
+        {
             Action action = () => PerformDisconnect(device);
 
-            if (Configuration.DisconnectOnMainThread) {
+            if (Configuration.DisconnectOnMainThread)
+            {
                 var handler = new Handler(Looper.MainLooper);
                 handler.PostAtFrontOfQueue(action);
-            } else {
+            }
+            else
+            {
                 action.Invoke();
             }
         }
 
-        public Task StartAdvertising(string localName, List<IService> services) {
+        public Task StartAdvertising(string localName, List<IService> services)
+        {
             var settings = new AdvertiseSettings.Builder()
-                    .SetAdvertiseMode(AdvertiseMode.LowLatency)
-                    .SetTxPowerLevel(AdvertiseTx.PowerHigh)
-                    .SetTimeout(0)
-                    .SetConnectable(true)
-                    .Build();
+                .SetAdvertiseMode(AdvertiseMode.LowLatency)
+                .SetTxPowerLevel(AdvertiseTx.PowerHigh)
+                .SetTimeout(0)
+                .SetConnectable(true)
+                .Build();
 
             if (localName != null)
             {
@@ -251,24 +343,29 @@ namespace BluetoothLE.Droid {
         /// <summary>
         /// Stops peripheral advertising
         /// </summary>
-        public void StopAdvertising() {
+        public void StopAdvertising()
+        {
             _adapter.BluetoothLeAdvertiser.StopAdvertising(_advertiseCallback);
         }
 
-        public bool SupportsAdvertising() {
+        public bool SupportsAdvertising()
+        {
             var multi = _adapter.IsMultipleAdvertisementSupported;
 
             var batching = _adapter.IsOffloadedScanBatchingSupported;
             var filtering = _adapter.IsOffloadedFilteringSupported;
 
             String missingFeatures = "";
-            if (!multi) {
+            if (!multi)
+            {
                 missingFeatures += $"MultipleAdvertisment";
             }
-            if (!batching) {
+            if (!batching)
+            {
                 missingFeatures += $" OffloadedScanBatching";
             }
-            if (!filtering) {
+            if (!filtering)
+            {
                 missingFeatures += $" OffloadedFiltering";
             }
             var support = multi && batching && filtering;
@@ -304,7 +401,6 @@ namespace BluetoothLE.Droid {
         /// </summary>
         /// <value>The discovered devices.</value>
         //public IList<IDevice> DiscoveredDevices => _devices.ToList();
-
         /// <summary>
         /// Gets the connected devices.
         /// </summary>
@@ -318,12 +414,13 @@ namespace BluetoothLE.Droid {
         #endregion
 
         #region GattCallback delegate methods
-
-        private void BluetoothGatt_DeviceConnected(object sender, DeviceConnectionEventArgs e) {
+        private void BluetoothGatt_DeviceConnected(object sender, DeviceConnectionEventArgs e)
+        {
             DeviceConnected(this, e);
         }
 
-        private void BluetoothGatt_DeviceDisconnected(object sender, DeviceConnectionEventArgs e) {
+        private void BluetoothGatt_DeviceDisconnected(object sender, DeviceConnectionEventArgs e)
+        {
             DeviceDisconnected(this, e);
         }
 
@@ -343,48 +440,56 @@ namespace BluetoothLE.Droid {
             var gatt = remoteDevice.ConnectGatt(Android.App.Application.Context, false, _callback);
             androidDevice.Gatt = gatt;
             gatt.Connect();
-            
         }
 
-        private void PerformDisconnect(IDevice device) {
+        private void PerformDisconnect(IDevice device)
+        {
             try
             {
                 device.Disconnect();
-                
-                
+
+
                 DeviceDisconnected(this, new DeviceConnectionEventArgs(device));
-            } catch (Exception e) {
+            }
+            catch (Exception e)
+            {
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
         }
 
-        private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs) {
+        private void ScanCallbackOnDeviceDiscovered(object sender, DeviceDiscoveredEventArgs deviceDiscoveredEventArgs)
+        {
             DeviceDiscovered(this, new DeviceDiscoveredEventArgs(deviceDiscoveredEventArgs.Device));
         }
 
-        private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+        private void Bluetooth_AdvertiseStartSuccess(object sender, AdvertiseStartEventArgs advertiseStartEventArgs)
+        {
             AdvertiseStartSuccess?.Invoke(this, advertiseStartEventArgs);
         }
 
-        private void BluetoothGatt_AdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs) {
+        private void BluetoothGatt_AdvertiseStartFailed(object sender, AdvertiseStartEventArgs advertiseStartEventArgs)
+        {
             AdvertiseStartFailed?.Invoke(this, advertiseStartEventArgs);
         }
     }
 
-    public class GattServerCallback : BluetoothGattServerCallback {
+    public class GattServerCallback : BluetoothGattServerCallback
+    {
         public BluetoothGattServer Server { get; set; }
 
-        public override void OnCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
+        public override void OnCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic)
+        {
             var value = characteristic.GetValue();
             Server.SendResponse(device, requestId, GattStatus.Success, offset, value);
         }
 
-        public override void OnCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, bool preparedWrite, bool responseNeeded, int offset, byte[] value) {
+        public override void OnCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, bool preparedWrite, bool responseNeeded, int offset, byte[] value)
+        {
             characteristic.SetValue(value);
-            if (responseNeeded) {
+            if (responseNeeded)
+            {
                 Server.SendResponse(device, requestId, GattStatus.Success, offset, value);
             }
         }
     }
 }
-

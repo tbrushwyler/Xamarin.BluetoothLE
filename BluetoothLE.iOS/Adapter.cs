@@ -12,7 +12,12 @@ using CoreFoundation;
 using Foundation;
 using UIKit;
 using System.Diagnostics;
-using BluetoothLE.iOS.Common;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using BluetoothLE.Core.Exceptions;
+using BluetoothLE.Core.Factory;
+using BluetoothLE.iOS.Factory;
+using ReactiveBluetooth.Core;
 
 namespace BluetoothLE.iOS
 {
@@ -21,14 +26,18 @@ namespace BluetoothLE.iOS
     /// </summary>
     public class Adapter : CBPeripheralManagerDelegate, IAdapter
     {
-        private readonly CBCentralManager _central;
+        private readonly CBCentralManager _centralManager;
         private readonly CBPeripheralManager _peripheralManager;
-        private readonly AutoResetEvent _stateChanged;
         private List<IDevice> _devices = new List<IDevice>();
         private List<IDevice> _discoveringDevices = new List<IDevice>();
         private static Adapter _current;
-        private Task _startAdvertise;
         private CancellationTokenSource _scanCancellationToken;
+        private Subject<ManagerState> _peripheralStateSubject;
+
+        private ManagerState _peripheralState;
+        private ManagerState _centralState;
+        private IDisposable _peripheralStateDisposable;
+        private IDisposable _centralStateDisposable;
 
         /// <summary>
         /// Gets the current Adpater instance
@@ -44,43 +53,40 @@ namespace BluetoothLE.iOS
         /// </summary>
         public Adapter()
         {
-            _central = new CBCentralManager();
+            _centralManager = new CBCentralManager();
 
-            _central.DiscoveredPeripheral += DiscoveredPeripheral;
-            _central.UpdatedState += UpdatedState;
-            _central.ConnectedPeripheral += ConnectedPeripheral;
-            _central.DisconnectedPeripheral += DisconnectedPeripheral;
-            _central.FailedToConnectPeripheral += FailedToConnectPeripheral;
-
-            _stateChanged = new AutoResetEvent(false);
+            _centralManager.DiscoveredPeripheral += DiscoveredPeripheral;
+            _centralManager.ConnectedPeripheral += ConnectedPeripheral;
+            _centralManager.DisconnectedPeripheral += DisconnectedPeripheral;
+            _centralManager.FailedToConnectPeripheral += FailedToConnectPeripheral;
 
             _current = this;
 
+            CentralStateChanged = Observable.FromEventPattern(eh => _centralManager.UpdatedState += eh, eh => _centralManager.UpdatedState -= eh).Select(x => (ManagerState)_centralManager.State);
             _scanCancellationToken = new CancellationTokenSource();
+            _peripheralStateSubject = new Subject<ManagerState>();
+
+            PeripheralStateChanged = _peripheralStateSubject.AsObservable();
             _peripheralManager = new CBPeripheralManager(this, null);
+
+            CharacteristicsFactory = new CharacteristicsFactory();
+            ServiceFactory = new ServiceFactory();
+
+            _peripheralStateDisposable = _peripheralStateSubject.Subscribe(state => _peripheralState = state);
+            _centralStateDisposable = CentralStateChanged.Subscribe(state => _centralState = state);
         }
+
+        public IObservable<ManagerState> CentralStateChanged { get; }
+        public IObservable<ManagerState> PeripheralStateChanged { get; }
+
+        public ICharacteristicsFactory CharacteristicsFactory { get; }
+        public IServiceFactory ServiceFactory { get; }
 
         #region ICBPeripheralManagerDelegate implementation
 
-        public override async void StateUpdated(CBPeripheralManager peripheral)
+        public override void StateUpdated(CBPeripheralManager peripheral)
         {
-            switch (peripheral.State)
-            {
-                case CBPeripheralManagerState.Unknown:
-                case CBPeripheralManagerState.Resetting:
-                case CBPeripheralManagerState.Unsupported:
-                case CBPeripheralManagerState.Unauthorized:
-                case CBPeripheralManagerState.PoweredOff:
-                    break;
-                case CBPeripheralManagerState.PoweredOn:
-                    if (_startAdvertise != null)
-                    {
-                        _startAdvertise.Start();
-                        await _startAdvertise;
-                        _startAdvertise = null;
-                    }
-                    break;
-            }
+            _peripheralStateSubject.OnNext((ManagerState)peripheral.State);
         }
 
         public override void AdvertisingStarted(CBPeripheralManager peripheral, NSError error)
@@ -97,26 +103,17 @@ namespace BluetoothLE.iOS
 
         #endregion
 
-        private async Task WaitForState(CBCentralManagerState state)
-        {
-            while (_central.State != state)
-            {
-                await Task.Run(() => _stateChanged.WaitOne());
-            }
-        }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
             if (!disposing)
             {
-                if (_central != null)
+                if (_centralManager != null)
                 {
-                    _central.DiscoveredPeripheral -= DiscoveredPeripheral;
-                    _central.UpdatedState -= UpdatedState;
-                    _central.ConnectedPeripheral -= ConnectedPeripheral;
-                    _central.DisconnectedPeripheral -= DisconnectedPeripheral;
-                    _central.FailedToConnectPeripheral -= FailedToConnectPeripheral;
+                    _centralManager.DiscoveredPeripheral -= DiscoveredPeripheral;
+                    _centralManager.ConnectedPeripheral -= ConnectedPeripheral;
+                    _centralManager.DisconnectedPeripheral -= DisconnectedPeripheral;
+                    _centralManager.FailedToConnectPeripheral -= FailedToConnectPeripheral;
                 }
             }
         }
@@ -187,7 +184,9 @@ namespace BluetoothLE.iOS
             if (IsScanning)
                 return;
 
-            await WaitForState(CBCentralManagerState.PoweredOn);
+            if (_centralManager.State != CBCentralManagerState.PoweredOn)
+                throw new InvalidStateException((ManagerState)_centralManager.State);
+
             Debug.WriteLine("StartScanningForDevices");
             var uuids = new List<CBUUID>();
             foreach (var guid in serviceUuids)
@@ -199,7 +198,7 @@ namespace BluetoothLE.iOS
 
             var options = new PeripheralScanningOptions() {};
             _discoveringDevices = new List<IDevice>();
-            _central.ScanForPeripherals(uuids.ToArray(), options);
+            _centralManager.ScanForPeripherals(uuids.ToArray(), options);
 
             // Wait for the timeout
             _scanCancellationToken = new CancellationTokenSource();
@@ -224,19 +223,20 @@ namespace BluetoothLE.iOS
             }
         }
 
-        public async void StartContinuosScan()
+        public void StartContinuosScan()
         {
             if (IsScanning)
                 return;
 
-            await WaitForState(CBCentralManagerState.PoweredOn);
+            if (_centralManager.State != CBCentralManagerState.PoweredOn)
+                throw new InvalidStateException((ManagerState)_centralManager.State);
 
             IsScanning = true;
 
             _discoveringDevices = new List<IDevice>();
             var uuids = new List<CBUUID>();
             var options = new PeripheralScanningOptions() { };
-            _central.ScanForPeripherals(uuids.ToArray(), options);
+            _centralManager.ScanForPeripherals(uuids.ToArray(), options);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace BluetoothLE.iOS
                 }
             }
             IsScanning = false;
-            _central.StopScan();
+            _centralManager.StopScan();
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace BluetoothLE.iOS
         public void ConnectToDevice(IDevice device)
         {
             var peripheral = (CBPeripheral) device.NativeDevice;
-            _central.ConnectPeripheral(peripheral);
+            _centralManager.ConnectPeripheral(peripheral);
         }
 
         /// <summary>
@@ -279,73 +279,47 @@ namespace BluetoothLE.iOS
             var peripheral = device.NativeDevice as CBPeripheral;
             if (peripheral != null)
             {
-                _central.CancelPeripheralConnection(peripheral);
+                _centralManager.CancelPeripheralConnection(peripheral);
             }
         }
 
         public async Task StartAdvertising(string localName, List<IService> services)
         {
-            _startAdvertise = new Task(() =>
+            
+            if (_peripheralManager.State != CBPeripheralManagerState.PoweredOn)
             {
-                var cbuuIdArray = new NSMutableArray();
-                var optionsDict = new NSMutableDictionary();
-                if (services != null)
-                {
-                    foreach (Service service in services)
-                    {
-                        cbuuIdArray.Add(CBUUID.FromString(service.Uuid));
-                        //_peripheralManager.AddService((CBMutableService) service.NativeService);
-                    }
-                    optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;
-                }
-
-                
-                if (localName != null)
-                {
-                    optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
-                }
-
-                _peripheralManager.StartAdvertising(optionsDict);
-            });
-
-            if (_peripheralManager.State == CBPeripheralManagerState.PoweredOn)
-            {
-                _startAdvertise.Start();
-                await _startAdvertise;
-                _startAdvertise = null;
+                throw new InvalidStateException((ManagerState)_peripheralManager.State);
             }
+
+            var cbuuIdArray = new NSMutableArray();
+            var optionsDict = new NSMutableDictionary();
+            if (services != null)
+            {
+                foreach (Service service in services)
+                {
+                    cbuuIdArray.Add(CBUUID.FromString(service.Uuid));
+                    //_peripheralManager.AddService((CBMutableService) service.NativeService);
+                }
+                optionsDict[CBAdvertisement.DataServiceUUIDsKey] = cbuuIdArray;
+            }
+
+
+            if (localName != null)
+            {
+                optionsDict[CBAdvertisement.DataLocalNameKey] = new NSString(localName);
+            }
+
+            _peripheralManager.StartAdvertising(optionsDict);
         }
 
         public void StopAdvertising()
         {
-            _startAdvertise = null;
             _peripheralManager.StopAdvertising();
-        }
-
-        public bool SupportsAdvertising()
-        {
-            var deviceInfo = DeviceHelper.GetDeviceInfo();
-
-            // CBPeripheralManager seems to be widely supported by Apple
-            // iPhone 4s does not have ble chip
-            //return UIDevice.CurrentDevice.CheckSystemVersion(6, 0);
-
-            return deviceInfo.Model != DeviceModelTypes.iPad
-                   && deviceInfo.Model != DeviceModelTypes.iPad2
-                   && deviceInfo.Model != DeviceModelTypes.iPhone
-                   && deviceInfo.Model != DeviceModelTypes.iPhone3G
-                   && deviceInfo.Model != DeviceModelTypes.iPhone3GS
-                   && deviceInfo.Model != DeviceModelTypes.iPhone4
-                   && deviceInfo.Model != DeviceModelTypes.iPhone4S
-                   && deviceInfo.Model != DeviceModelTypes.iPod1G
-                   && deviceInfo.Model != DeviceModelTypes.iPod2G
-                   && deviceInfo.Model != DeviceModelTypes.iPod3G
-                   && deviceInfo.Model != DeviceModelTypes.iPod4G;
         }
 
         public List<IDevice> ConnectedDevices()
         {
-            return _central.RetrieveConnectedPeripherals((CBUUID) null).Select(x => new Device(x)).Cast<IDevice>().ToList();
+            return _centralManager.RetrieveConnectedPeripherals((CBUUID) null).Select(x => new Device(x)).Cast<IDevice>().ToList();
         }
 
         /// <summary>
@@ -354,6 +328,16 @@ namespace BluetoothLE.iOS
         /// <value>true</value>
         /// <c>false</c>
         public bool IsScanning { get; set; }
+
+        public ManagerState CentralState
+        {
+            get { return _centralState; }
+        }
+
+        public ManagerState PeripheralState
+        {
+            get { return _peripheralState; }
+        }
 
         /// <summary>
         /// Gets the discovered devices.
@@ -449,11 +433,6 @@ namespace BluetoothLE.iOS
                 resultData[guid] = dataBytes;
             }
             return resultData;
-        }
-
-        private void UpdatedState(object sender, EventArgs e)
-        {
-            _stateChanged.Set();
         }
 
         private void ConnectedPeripheral(object sender, CBPeripheralEventArgs e)

@@ -15,4 +15,9 @@
     @references@
   </metadata>
   @files@
+  <dependencies>
+  <group targetFramework="MonoAndroid10">
+    <dependency id="Plugin.CurrentActivity" version="1.0.1"/>
+  </group>
+</dependencies>
 </package>
