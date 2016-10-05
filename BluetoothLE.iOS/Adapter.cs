@@ -277,7 +277,7 @@ namespace BluetoothLE.iOS
         public void DisconnectDevice(IDevice device)
         {
             var peripheral = device.NativeDevice as CBPeripheral;
-            if (peripheral != null)
+			if (peripheral != null && peripheral.State != CBPeripheralState.Disconnected)
             {
                 _centralManager.CancelPeripheralConnection(peripheral);
             }
