@@ -180,8 +180,8 @@ namespace BluetoothLE.Droid
 				const string descriptorId = "00002902-0000-1000-8000-00805f9b34fb";
 				var value = enable ? BluetoothGattDescriptor.EnableNotificationValue : BluetoothGattDescriptor.DisableNotificationValue;
 				var descriptor = _nativeCharacteristic.Descriptors.FirstOrDefault(x => x.Uuid.ToString() == descriptorId);
-				if (descriptor != null && !descriptor.SetValue(value.ToArray()))
-					throw new Exception("Unable to set the notification value on the descriptor");
+                if (descriptor == null || !descriptor.SetValue(value.ToArray()) || !_gatt.WriteDescriptor(descriptor))
+                    throw new Exception("Unable to set the notification value on the descriptor");
 			}
 		}
 	}
