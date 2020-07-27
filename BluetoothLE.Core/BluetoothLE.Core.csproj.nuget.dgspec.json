@@ -1,0 +1,32 @@
+{
+  "format": 1,
+  "restore": {
+    "/Users/tbrushwyler/Documents/source/tbrushwyler/Xamarin.BluetoothLE/BluetoothLE.Core/BluetoothLE.Core.csproj": {}
+  },
+  "projects": {
+    "/Users/tbrushwyler/Documents/source/tbrushwyler/Xamarin.BluetoothLE/BluetoothLE.Core/BluetoothLE.Core.csproj": {
+      "restore": {
+        "projectUniqueName": "/Users/tbrushwyler/Documents/source/tbrushwyler/Xamarin.BluetoothLE/BluetoothLE.Core/BluetoothLE.Core.csproj",
+        "projectName": "BluetoothLE.Core",
+        "projectPath": "/Users/tbrushwyler/Documents/source/tbrushwyler/Xamarin.BluetoothLE/BluetoothLE.Core/BluetoothLE.Core.csproj",
+        "projectJsonPath": "/Users/tbrushwyler/Documents/source/tbrushwyler/Xamarin.BluetoothLE/BluetoothLE.Core/project.json",
+        "packagesPath": "/Users/tbrushwyler/.nuget/packages/",
+        "projectStyle": "ProjectJson",
+        "configFilePaths": [
+          "/Users/tbrushwyler/.config/NuGet/NuGet.Config"
+        ],
+        "sources": {
+          "http://nuget.syncfusion.com/nuget_xamarin/nuget/getsyncfusionpackages/xamarin": {},
+          "https://api.nuget.org/v3/index.json": {}
+        }
+      },
+      "dependencies": {
+        "Microsoft.NETCore.Portable.Compatibility": "[1.0.1, )",
+        "NETStandard.Library": "[2.0.3, )"
+      },
+      "frameworks": {
+        "netstandard1.5": {}
+      }
+    }
+  }
+}
